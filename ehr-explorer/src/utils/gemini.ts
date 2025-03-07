@@ -166,4 +166,56 @@ export async function generateComprehensiveInsights(
     console.error("Error generating comprehensive insights:", error);
     return "Unable to generate insights at this time. Please try again later.";
   }
+}
+
+/**
+ * Generate response to a user's question about a specific patient
+ */
+export async function generatePatientChatResponse(
+  patientData: Patient,
+  conditions: Condition[],
+  medications: Medication[],
+  userQuery: string
+): Promise<string> {
+  const prompt = `
+  You are a clinical data analyst examining comprehensive patient health data.
+  Answer the following question about the patient based on their health records:
+  
+  "${userQuery}"
+  
+  Patient: ${patientData.name} (${patientData.gender}, DOB: ${patientData.birthDate})
+  
+  Condition history:
+  ${conditions
+    .map(
+      (cond) =>
+        `- ${cond.condition} (Code: ${
+          cond.condition_code || "Unknown"
+        }): Onset ${cond.onset_date || "Unknown"}, Abatement: ${
+          cond.abatement_date || "Ongoing"
+        }`
+    )
+    .join("\n")}
+  
+  Medication history:
+  ${medications
+    .map(
+      (med) =>
+        `- ${med.medication} (${
+          med.dosage || "No dosage info"
+        }): Started ${med.start_date}, Status: ${med.status}`
+    )
+    .join("\n")}
+  
+  Please provide a brief, specific answer to the question. Be professional, accurate, and helpful. Do not include the patient's name in your response, refer to them as "the patient" instead. Also do not mention their specific gender, DOB, marital status, and phone number in your response.
+  `;
+
+  try {
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    return response.text();
+  } catch (error) {
+    console.error("Error generating chat response:", error);
+    return "I'm unable to answer that question at the moment. Please try again later.";
+  }
 } 

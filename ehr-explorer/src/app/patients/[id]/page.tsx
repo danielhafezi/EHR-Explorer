@@ -33,6 +33,12 @@ export default function PatientDetail({ params }: PatientDetailProps) {
   const [error, setError] = useState<string | null>(null);
   const [insights, setInsights] = useState<string | null>(null);
   const [insightsLoading, setInsightsLoading] = useState<boolean>(false);
+  
+  // Chat-related state
+  const [chatQuery, setChatQuery] = useState<string>('');
+  const [chatResponse, setChatResponse] = useState<string | null>(null);
+  const [chatLoading, setChatLoading] = useState<boolean>(false);
+  const [chatHistory, setChatHistory] = useState<Array<{query: string, response: string}>>([]);
 
   useEffect(() => {
     const fetchPatientData = async () => {
@@ -122,6 +128,44 @@ export default function PatientDetail({ params }: PatientDetailProps) {
     }
   };
 
+  // Add a new function to handle chat submissions
+  const handleChatSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!chatQuery.trim()) return;
+    
+    setChatLoading(true);
+    setChatResponse(null);
+    
+    try {
+      const response = await fetch(`/api/patients/${id}/insights/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query: chatQuery }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to get response');
+      }
+      
+      const data = await response.json();
+      setChatResponse(data.response);
+      
+      // Add to chat history
+      setChatHistory(prev => [...prev, { query: chatQuery, response: data.response }]);
+      
+      // Clear the input
+      setChatQuery('');
+    } catch (err) {
+      console.error('Error in chat:', err);
+      setChatResponse('Sorry, I encountered an error while processing your question. Please try again.');
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -198,6 +242,80 @@ export default function PatientDetail({ params }: PatientDetailProps) {
             </div>
           </div>
         </div>
+      </div>
+      
+      {/* Chat Interface */}
+      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 className="text-xl font-semibold text-black mb-4">Ask About This Patient</h2>
+        
+        <div className="mb-4 max-h-60 overflow-y-auto">
+          {chatHistory.length > 0 ? (
+            <div className="space-y-4">
+              {chatHistory.map((chat, index) => (
+                <div key={index} className="space-y-2">
+                  <div className="bg-gray-100 p-3 rounded-lg text-black">
+                    <p className="font-medium">Question:</p>
+                    <p>{chat.query}</p>
+                  </div>
+                  <div className="bg-blue-50 p-3 rounded-lg text-black">
+                    <p className="font-medium">Response:</p>
+                    <div className="prose">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{chat.response}</ReactMarkdown>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500 italic">Ask a question about this patient's health, medications, conditions, or treatment plan.</p>
+          )}
+          
+          {chatLoading && (
+            <div className="flex items-center justify-center p-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+              <p className="ml-2 text-gray-600">Generating response...</p>
+            </div>
+          )}
+          
+          {chatResponse && !chatHistory.some(chat => chat.response === chatResponse) && (
+            <div className="mt-4">
+              <div className="bg-gray-100 p-3 rounded-lg text-black">
+                <p className="font-medium">Question:</p>
+                <p>{chatQuery}</p>
+              </div>
+              <div className="bg-blue-50 p-3 rounded-lg text-black mt-2">
+                <p className="font-medium">Response:</p>
+                <div className="prose">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{chatResponse}</ReactMarkdown>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+        
+        <form onSubmit={handleChatSubmit} className="flex items-end">
+          <div className="flex-grow">
+            <label htmlFor="chat-query" className="block text-sm font-medium text-black mb-1">
+              Your Question
+            </label>
+            <textarea
+              id="chat-query"
+              rows={2}
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-black resize-none"
+              placeholder="What questions do you have about this patient?"
+              value={chatQuery}
+              onChange={(e) => setChatQuery(e.target.value)}
+              disabled={chatLoading}
+            />
+          </div>
+          <button
+            type="submit"
+            className="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+            disabled={!chatQuery.trim() || chatLoading}
+          >
+            Send
+          </button>
+        </form>
       </div>
       
       <div className="mb-8">
