@@ -6,7 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "process-data": "node scripts/process-synthea.js",
+    "watch-data": "node scripts/watch-synthea.js",
+    "dev:watch": "powershell -Command \"Start-Process powershell -ArgumentList '-Command \"node scripts/watch-synthea.js\"' -NoNewWindow; next dev\"",
+    "reset-db": "node scripts/reset-database.js",
+    "add-sample-data": "node scripts/sample-data.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.0",
@@ -21,6 +26,7 @@
     "@tanstack/react-query": "^5.67.2",
     "autoprefixer": "^10.4.20",
     "chart.js": "^4.4.8",
+    "chokidar": "^4.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.479.0",
