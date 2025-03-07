@@ -183,6 +183,10 @@ export default function PatientDetail({ params }: PatientDetailProps) {
     
     if (!chatQuery.trim()) return;
     
+    // Store the current query before clearing it
+    const currentQuery = chatQuery;
+    
+    // Show loading state
     setChatLoading(true);
     setChatResponse(null);
     
@@ -192,7 +196,7 @@ export default function PatientDetail({ params }: PatientDetailProps) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ query: chatQuery }),
+        body: JSON.stringify({ query: currentQuery }),
       });
       
       if (!response.ok) {
@@ -200,16 +204,19 @@ export default function PatientDetail({ params }: PatientDetailProps) {
       }
       
       const data = await response.json();
-      setChatResponse(data.response);
       
-      // Add to chat history
-      setChatHistory(prev => [...prev, { query: chatQuery, response: data.response }]);
+      // Update chat history with the new conversation
+      setChatHistory(prev => [...prev, { query: currentQuery, response: data.response }]);
       
       // Clear the input
       setChatQuery('');
     } catch (err) {
       console.error('Error in chat:', err);
-      setChatResponse('Sorry, I encountered an error while processing your question. Please try again.');
+      // Add error message to chat history instead of setting chatResponse
+      setChatHistory(prev => [...prev, { 
+        query: currentQuery, 
+        response: 'Sorry, I encountered an error while processing your question. Please try again.' 
+      }]);
     } finally {
       setChatLoading(false);
     }
@@ -282,7 +289,7 @@ export default function PatientDetail({ params }: PatientDetailProps) {
               {patient.birthDate ? new Date(patient.birthDate).toLocaleDateString() : 'Unknown'}
             </p>
             <p className="flex items-center">
-              <MapPin className="h-6 w-6 text-gray-500 mr-1" />
+              <MapPin className="h-7 w-7 text-gray-500 mr-1" />
               <span className="text-gray-800 font-medium mr-1">Address:</span> 
               {formatAddress(patient.address)}
             </p>
@@ -589,27 +596,6 @@ export default function PatientDetail({ params }: PatientDetailProps) {
                   </div>
                 )}
                 
-                {chatResponse && (
-                  <div className="space-y-4">
-                    <div className="bg-blue-50 p-4 rounded-lg rounded-br-none">
-                      <div className="flex items-start">
-                        <User className="h-5 w-5 text-blue-600 mt-0.5 mr-2 flex-shrink-0" />
-                        <div className="text-blue-800">{chatQuery}</div>
-                      </div>
-                    </div>
-                    <div className="bg-gray-100 p-4 rounded-lg rounded-bl-none">
-                      <div className="flex items-start">
-                        <MessageCircle className="h-5 w-5 text-gray-600 mt-0.5 mr-2 flex-shrink-0" />
-                        <div className="prose prose-sm max-w-none text-black">
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                            {chatResponse}
-                          </ReactMarkdown>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
                 {chatLoading && (
                   <div className="flex items-center justify-center p-4">
                     <Loader2 className="h-5 w-5 animate-spin text-blue-500 mr-2" />
@@ -626,7 +612,7 @@ export default function PatientDetail({ params }: PatientDetailProps) {
                   <input
                     type="text"
                     id="chatQuery"
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3 border"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3 border text-black"
                     placeholder="Ask about medications, conditions, or potential interactions..."
                     value={chatQuery}
                     onChange={(e) => setChatQuery(e.target.value)}
