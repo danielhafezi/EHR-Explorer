@@ -27,7 +27,7 @@ export default function RootLayout({
           <main className="container mx-auto py-6 px-4">{children}</main>
           <footer className="bg-gray-800 text-white p-4 mt-8">
             <div className="container mx-auto text-center text-sm">
-              <p className="text-white">EHR Explorer - Developed for PhD Application to Dr. Theresa Smith's Research Group</p>
+              <p className="text-white">EHR Explorer - Developed By DanielHafezi</p>
             </div>
           </footer>
         </div>

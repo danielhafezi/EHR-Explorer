@@ -60,7 +60,7 @@ export async function generateMedicationInsights(
     )
     .join("\n")}
   
-  Please provide your longitudinal analysis of this patient's medication patterns.
+  Please provide your longitudinal analysis of this patient's medication patterns. Be short and Consice and do not include Patient's name, Gender, DOB, Marital Status and Phone Number.
   `;
 
   try {
@@ -102,7 +102,7 @@ export async function generateConditionInsights(
     )
     .join("\n")}
   
-  Please provide your longitudinal analysis of this patient's condition progression.
+  Please provide your longitudinal analysis of this patient's condition progression. Be short and Consice and do not include Patient's name, Gender, DOB, Marital Status and Phone Number.
   `;
 
   try {
@@ -155,7 +155,7 @@ export async function generateComprehensiveInsights(
     )
     .join("\n")}
   
-  Please provide your comprehensive longitudinal analysis of this patient's health.
+  Please provide your comprehensive longitudinal analysis of this patient's health. Be short and Consice and do not include Patient's name, Gender, DOB, Marital Status and Phone Number.
   `;
 
   try {
