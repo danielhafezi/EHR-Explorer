@@ -485,28 +485,28 @@ export default function PatientDetail({ params }: PatientDetailProps) {
             <h2 className="text-xl font-semibold text-black">Summary</h2>
           </div>
           {summary && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-blue-50 rounded-lg p-4 flex items-center">
-                <Pill className="h-8 w-8 text-blue-500 mr-3" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-blue-50 rounded-lg p-6 flex items-center shadow-sm">
+                <Pill className="h-10 w-10 text-blue-500 mr-4" />
                 <div>
-                  <div className="text-sm text-gray-700">Medications</div>
-                  <div className="text-2xl font-bold text-gray-800">{summary.medicationCount}</div>
+                  <div className="text-base text-gray-700">Medications</div>
+                  <div className="text-3xl font-bold text-gray-800">{summary.medicationCount}</div>
                 </div>
               </div>
               
-              <div className="bg-green-50 rounded-lg p-4 flex items-center">
-                <Heart className="h-8 w-8 text-green-500 mr-3" />
+              <div className="bg-green-50 rounded-lg p-6 flex items-center shadow-sm">
+                <Heart className="h-10 w-10 text-green-500 mr-4" />
                 <div>
-                  <div className="text-sm text-gray-700">Conditions</div>
-                  <div className="text-2xl font-bold text-gray-800">{summary.conditionCount}</div>
+                  <div className="text-base text-gray-700">Conditions</div>
+                  <div className="text-3xl font-bold text-gray-800">{summary.conditionCount}</div>
                 </div>
               </div>
               
-              <div className="bg-purple-50 rounded-lg p-4 flex items-center">
-                <Clock className="h-8 w-8 text-purple-500 mr-3" />
+              <div className="bg-purple-50 rounded-lg p-6 flex items-center shadow-sm">
+                <Clock className="h-10 w-10 text-purple-500 mr-4" />
                 <div>
-                  <div className="text-sm text-gray-700">Encounters</div>
-                  <div className="text-2xl font-bold text-gray-800">{summary.encounterCount}</div>
+                  <div className="text-base text-gray-700">Encounters</div>
+                  <div className="text-3xl font-bold text-gray-800">{summary.encounterCount}</div>
                 </div>
               </div>
             </div>
