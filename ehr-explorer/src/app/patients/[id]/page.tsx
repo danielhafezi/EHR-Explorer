@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { Patient, Medication, Condition } from '@/utils/database';
+import { Patient, Medication, Condition, Encounter } from '@/utils/database';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { 
@@ -16,6 +16,11 @@ import {
   ClipboardList, TrendingUp, ListChecks, Users,
   Zap, ChevronUp, ChevronDown
 } from 'lucide-react';
+import {
+  LineChart, Line, BarChart, Bar, PieChart, Pie,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+  ResponsiveContainer, Cell
+} from 'recharts';
 
 interface PatientSummary {
   medicationCount: number;
@@ -198,6 +203,8 @@ export default function PatientDetail({ params }: PatientDetailProps) {
   const [summary, setSummary] = useState<PatientSummary | null>(null);
   const [medications, setMedications] = useState<Medication[]>([]);
   const [conditions, setConditions] = useState<Condition[]>([]);
+  const [encounters, setEncounters] = useState<Encounter[]>([]);
+  const [encountersLoading, setEncountersLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<string>('overview');
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -259,6 +266,7 @@ export default function PatientDetail({ params }: PatientDetailProps) {
     const fetchPatientData = async () => {
       try {
         setLoading(true);
+        setEncountersLoading(true);
         
         // Fetch patient details
         const patientResponse = await fetch(`/api/patients/${id}`);
@@ -284,6 +292,15 @@ export default function PatientDetail({ params }: PatientDetailProps) {
         }
         const conditionsData = await conditionsResponse.json();
         setConditions(conditionsData.conditions);
+        
+        // Fetch encounters
+        const encountersResponse = await fetch(`/api/patients/${id}/encounters`);
+        if (!encountersResponse.ok) {
+          throw new Error('Failed to fetch encounters');
+        }
+        const encountersData = await encountersResponse.json();
+        setEncounters(encountersData.encounters);
+        setEncountersLoading(false);
         
       } catch (err) {
         console.error('Error fetching patient data:', err);
@@ -404,6 +421,61 @@ export default function PatientDetail({ params }: PatientDetailProps) {
       setChatLoading(false);
     }
   };
+
+  // Function to process encounters by date (for visit frequency chart)
+  const processEncountersByDate = () => {
+    // Create a map of year-month to count
+    const dateCountMap = new Map();
+    
+    // Sort encounters by date
+    const sortedEncounters = [...encounters].sort((a, b) => {
+      return new Date(a.start_date || '').getTime() - new Date(b.start_date || '').getTime();
+    });
+    
+    // Group by year-month
+    sortedEncounters.forEach(encounter => {
+      if (encounter.start_date) {
+        // Format date as YYYY-MM
+        const date = new Date(encounter.start_date);
+        const yearMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        
+        if (dateCountMap.has(yearMonth)) {
+          dateCountMap.set(yearMonth, dateCountMap.get(yearMonth) + 1);
+        } else {
+          dateCountMap.set(yearMonth, 1);
+        }
+      }
+    });
+    
+    // Convert map to array of objects for Recharts
+    return Array.from(dateCountMap.entries()).map(([date, count]) => ({
+      date,
+      visits: count
+    }));
+  };
+  
+  // Function to process encounters by type (for visit type breakdown)
+  const processEncountersByType = () => {
+    const typeCountMap = new Map();
+    
+    encounters.forEach(encounter => {
+      const type = encounter.encounter_type || 'Unknown';
+      
+      if (typeCountMap.has(type)) {
+        typeCountMap.set(type, typeCountMap.get(type) + 1);
+      } else {
+        typeCountMap.set(type, 1);
+      }
+    });
+    
+    return Array.from(typeCountMap.entries()).map(([type, count]) => ({
+      name: type,
+      value: count
+    }));
+  };
+  
+  // Colors for the pie chart
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
   if (loading) {
     return (
@@ -568,6 +640,112 @@ export default function PatientDetail({ params }: PatientDetailProps) {
       <div>
         {activeTab === 'overview' && (
           <div>
+            {/* Visualizations - Moved to top */}
+            <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Visit Frequency Chart */}
+              <div className="bg-white border border-gray-200 rounded-lg shadow p-6">
+                <div className="flex items-center mb-4">
+                  <Calendar className="h-6 w-6 text-blue-500 mr-2" />
+                  <h3 className="text-xl font-semibold text-black">Visit Frequency</h3>
+                </div>
+                {encountersLoading ? (
+                  <div className="h-64 flex items-center justify-center">
+                    <Loader2 className="h-6 w-6 text-blue-500 animate-spin" />
+                    <span className="ml-2">Loading visit data...</span>
+                  </div>
+                ) : encounters.length === 0 ? (
+                  <div className="h-64 flex flex-col items-center justify-center">
+                    <Calendar className="h-12 w-12 text-gray-300 mb-3" />
+                    <p className="text-center text-gray-500">No visit data available</p>
+                  </div>
+                ) : (
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart
+                        data={processEncountersByDate()}
+                        margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis 
+                          dataKey="date" 
+                          angle={-45} 
+                          textAnchor="end"
+                          height={60}
+                          tick={{ fontSize: 12 }}
+                        />
+                        <YAxis allowDecimals={false} />
+                        <Tooltip 
+                          formatter={(value) => [`${value} visits`, 'Frequency']}
+                          labelFormatter={(label) => {
+                            const [year, month] = label.split('-');
+                            return `${new Date(parseInt(year), parseInt(month) - 1).toLocaleString('default', { month: 'long' })} ${year}`;
+                          }}
+                        />
+                        <Legend />
+                        <Line 
+                          type="monotone" 
+                          dataKey="visits" 
+                          stroke="#0088FE" 
+                          strokeWidth={2}
+                          activeDot={{ r: 8 }} 
+                          name="Visits"
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </div>
+
+              {/* Visit Type Breakdown */}
+              <div className="bg-white border border-gray-200 rounded-lg shadow p-6">
+                <div className="flex items-center mb-4">
+                  <Stethoscope className="h-6 w-6 text-green-500 mr-2" />
+                  <h3 className="text-xl font-semibold text-black">Visit Type Breakdown</h3>
+                </div>
+                {encountersLoading ? (
+                  <div className="h-64 flex items-center justify-center">
+                    <Loader2 className="h-6 w-6 text-green-500 animate-spin" />
+                    <span className="ml-2">Loading visit data...</span>
+                  </div>
+                ) : encounters.length === 0 ? (
+                  <div className="h-64 flex flex-col items-center justify-center">
+                    <Stethoscope className="h-12 w-12 text-gray-300 mb-3" />
+                    <p className="text-center text-gray-500">No visit data available</p>
+                  </div>
+                ) : (
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={processEncountersByType()}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={true}
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="value"
+                          nameKey="name"
+                          label={false}
+                        >
+                          {processEncountersByType().map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip 
+                          formatter={(value, name, props) => [`${value} visits`, props.payload.name]}
+                          contentStyle={{ fontSize: '11px' }}
+                        />
+                        <Legend 
+                          wrapperStyle={{ fontSize: '10px' }} 
+                          iconSize={8}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </div>
+            </div>
+            
             <InsightPanel 
               insights={overviewInsights}
               loading={insightsLoading}
