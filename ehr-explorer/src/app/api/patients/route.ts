@@ -1,4 +1,5 @@
 import { getPatients, searchPatientsByName } from '@/utils/database';
+import { formatPatientName } from '@/utils/formatters';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
@@ -13,7 +14,13 @@ export async function GET(request: NextRequest) {
       patients = await getPatients();
     }
 
-    return NextResponse.json({ patients });
+    // Add formatted names to the response
+    const patientsWithFormattedNames = patients.map(patient => ({
+      ...patient,
+      formattedName: formatPatientName(patient.name)
+    }));
+
+    return NextResponse.json({ patients: patientsWithFormattedNames });
   } catch (error) {
     console.error('Error fetching patients:', error);
     return NextResponse.json(

@@ -4,6 +4,7 @@ import {
   getMedicationCountByPatientId,
   getEncounterCountByPatientId
 } from '@/utils/database';
+import { formatPatientName } from '@/utils/formatters';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
@@ -29,8 +30,14 @@ export async function GET(
     const conditionCount = await getConditionCountByPatientId(patientId);
     const encounterCount = await getEncounterCountByPatientId(patientId);
     
+    // Add formatted name to the patient object
+    const patientWithFormattedName = {
+      ...patient,
+      formattedName: formatPatientName(patient.name)
+    };
+    
     return NextResponse.json({
-      patient,
+      patient: patientWithFormattedName,
       summary: {
         medicationCount,
         conditionCount,

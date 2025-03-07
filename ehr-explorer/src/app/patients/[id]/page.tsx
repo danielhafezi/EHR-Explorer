@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Patient, Medication, Condition } from '@/utils/database';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface PatientSummary {
   medicationCount: number;
@@ -166,7 +168,7 @@ export default function PatientDetail({ params }: PatientDetailProps) {
       </div>
       
       <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-        <h1 className="text-3xl font-bold text-black mb-4">{patient.name}</h1>
+        <h1 className="text-3xl font-bold text-black mb-4">{patient.formattedName || patient.name}</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <h2 className="text-lg font-semibold text-black mb-2">Patient Information</h2>
@@ -264,10 +266,8 @@ export default function PatientDetail({ params }: PatientDetailProps) {
               ) : insights ? (
                 <div className="bg-white rounded-lg shadow-md p-6">
                   <h2 className="text-xl font-semibold text-black mb-4">AI-Generated Insights</h2>
-                  <div className="prose max-w-none text-black">
-                    {insights.split('\n').map((paragraph, index) => (
-                      <p key={index} className="mb-4">{paragraph}</p>
-                    ))}
+                  <div className="prose max-w-none text-black overflow-x-auto">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{insights}</ReactMarkdown>
                   </div>
                 </div>
               ) : null}
@@ -325,10 +325,8 @@ export default function PatientDetail({ params }: PatientDetailProps) {
               ) : insights ? (
                 <div className="bg-white rounded-lg shadow-md p-6">
                   <h2 className="text-xl font-semibold text-black mb-4">Medication Insights</h2>
-                  <div className="prose max-w-none text-black">
-                    {insights.split('\n').map((paragraph, index) => (
-                      <p key={index} className="mb-4">{paragraph}</p>
-                    ))}
+                  <div className="prose max-w-none text-black overflow-x-auto">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{insights}</ReactMarkdown>
                   </div>
                 </div>
               ) : null}
@@ -384,10 +382,8 @@ export default function PatientDetail({ params }: PatientDetailProps) {
               ) : insights ? (
                 <div className="bg-white rounded-lg shadow-md p-6">
                   <h2 className="text-xl font-semibold text-black mb-4">Condition Insights</h2>
-                  <div className="prose max-w-none text-black">
-                    {insights.split('\n').map((paragraph, index) => (
-                      <p key={index} className="mb-4">{paragraph}</p>
-                    ))}
+                  <div className="prose max-w-none text-black overflow-x-auto">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{insights}</ReactMarkdown>
                   </div>
                 </div>
               ) : null}

@@ -80,7 +80,7 @@ export default function Home() {
               className="block"
             >
               <div className="border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow p-6 bg-white">
-                <h2 className="text-xl font-semibold text-black mb-2">{patient.name}</h2>
+                <h2 className="text-xl font-semibold text-black mb-2">{patient.formattedName || patient.name}</h2>
                 <div className="text-black text-sm">
                   <p>Gender: {patient.gender || 'Unknown'}</p>
                   <p>DOB: {patient.birthDate ? new Date(patient.birthDate).toLocaleDateString() : 'Unknown'}</p>

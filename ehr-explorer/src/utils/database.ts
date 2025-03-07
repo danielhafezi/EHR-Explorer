@@ -12,6 +12,7 @@ export interface Patient {
   address: string | null;
   phone: string | null;
   marital_status: string | null;
+  formattedName?: string; // Optional property for formatted name
 }
 
 export interface Condition {
