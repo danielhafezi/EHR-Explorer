@@ -267,7 +267,7 @@ export default function PatientDetail({ params }: PatientDetailProps) {
               ))}
             </div>
           ) : (
-            <p className="text-gray-500 italic">Ask a question about this patient's health, medications, conditions, or treatment plan.</p>
+            <div></div>
           )}
           
           {chatLoading && (
@@ -293,24 +293,19 @@ export default function PatientDetail({ params }: PatientDetailProps) {
           )}
         </div>
         
-        <form onSubmit={handleChatSubmit} className="flex items-end">
-          <div className="flex-grow">
-            <label htmlFor="chat-query" className="block text-sm font-medium text-black mb-1">
-              Your Question
-            </label>
-            <textarea
-              id="chat-query"
-              rows={2}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-black resize-none"
-              placeholder="What questions do you have about this patient?"
-              value={chatQuery}
-              onChange={(e) => setChatQuery(e.target.value)}
-              disabled={chatLoading}
-            />
-          </div>
+        <form onSubmit={handleChatSubmit} className="relative">
+          <textarea
+            id="chat-query"
+            rows={2}
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-black resize-none pr-24"
+            placeholder="What questions do you have about this patient?"
+            value={chatQuery}
+            onChange={(e) => setChatQuery(e.target.value)}
+            disabled={chatLoading}
+          />
           <button
             type="submit"
-            className="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+            className="absolute right-2 bottom-1 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
             disabled={!chatQuery.trim() || chatLoading}
           >
             Send
