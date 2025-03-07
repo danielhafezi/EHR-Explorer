@@ -6,6 +6,12 @@ import Link from 'next/link';
 import { Patient, Medication, Condition } from '@/utils/database';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { 
+  User, Pill, Activity, List, ChevronLeft, 
+  FileText, MessageCircle, Send, Loader2, 
+  Brain, ChevronRight, Clock, Heart, PlusCircle,
+  Calendar, MapPin
+} from 'lucide-react';
 
 interface PatientSummary {
   medicationCount: number;
@@ -39,6 +45,41 @@ export default function PatientDetail({ params }: PatientDetailProps) {
   const [chatResponse, setChatResponse] = useState<string | null>(null);
   const [chatLoading, setChatLoading] = useState<boolean>(false);
   const [chatHistory, setChatHistory] = useState<Array<{query: string, response: string}>>([]);
+
+  // Format address from JSON string to readable format
+  const formatAddress = (addressStr: string | null) => {
+    if (!addressStr) return 'Unknown';
+    
+    try {
+      const addressObj = JSON.parse(addressStr);
+      const addressParts = [];
+      
+      // Add line parts (e.g., street number and name)
+      if (addressObj.line && addressObj.line.length > 0) {
+        addressParts.push(addressObj.line.join(', '));
+      }
+      
+      // Add city, state, and postal code
+      const locationParts = [];
+      if (addressObj.city) locationParts.push(addressObj.city);
+      if (addressObj.state) locationParts.push(addressObj.state);
+      if (addressObj.postalCode) locationParts.push(addressObj.postalCode);
+      
+      if (locationParts.length > 0) {
+        addressParts.push(locationParts.join(', '));
+      }
+      
+      // Add country if available
+      if (addressObj.country) {
+        addressParts.push(addressObj.country);
+      }
+      
+      return addressParts.length > 0 ? addressParts.join(', ') : 'Unknown';
+    } catch (e) {
+      console.error('Error parsing address:', e);
+      return addressStr; // Return original if parsing fails
+    }
+  };
 
   useEffect(() => {
     const fetchPatientData = async () => {
@@ -80,6 +121,14 @@ export default function PatientDetail({ params }: PatientDetailProps) {
     
     fetchPatientData();
   }, [id]);
+
+  // Add a new useEffect to automatically fetch comprehensive analysis when patient data is loaded
+  useEffect(() => {
+    // Only fetch insights when patient data has been loaded successfully
+    if (patient && !loading && !error) {
+      fetchInsights('comprehensive');
+    }
+  }, [patient, loading, error]);
 
   const fetchInsights = async (type: string) => {
     try {
@@ -170,7 +219,7 @@ export default function PatientDetail({ params }: PatientDetailProps) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+          <Loader2 className="h-12 w-12 animate-spin text-blue-500 mx-auto" />
           <p className="mt-4 text-gray-600">Loading patient data...</p>
         </div>
       </div>
@@ -183,8 +232,9 @@ export default function PatientDetail({ params }: PatientDetailProps) {
         <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6">
           <p>{error}</p>
         </div>
-        <Link href="/" className="text-blue-500 hover:underline">
-          &larr; Back to patient list
+        <Link href="/" className="text-blue-500 hover:underline flex items-center">
+          <ChevronLeft className="h-4 w-4 mr-1" />
+          Back to patient list
         </Link>
       </div>
     );
@@ -196,8 +246,9 @@ export default function PatientDetail({ params }: PatientDetailProps) {
         <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6">
           <p>Patient not found.</p>
         </div>
-        <Link href="/" className="text-blue-500 hover:underline">
-          &larr; Back to patient list
+        <Link href="/" className="text-blue-500 hover:underline flex items-center">
+          <ChevronLeft className="h-4 w-4 mr-1" />
+          Back to patient list
         </Link>
       </div>
     );
@@ -206,303 +257,393 @@ export default function PatientDetail({ params }: PatientDetailProps) {
   return (
     <div className="max-w-6xl mx-auto">
       <div className="mb-6">
-        <Link href="/" className="text-blue-500 hover:underline">
-          &larr; Back to patient list
+        <Link href="/" className="text-blue-500 hover:underline flex items-center w-fit">
+          <ChevronLeft className="h-4 w-4 mr-1" />
+          Back to patient list
         </Link>
       </div>
       
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-        <h1 className="text-3xl font-bold text-black mb-4">{patient.formattedName || patient.name}</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h2 className="text-lg font-semibold text-black mb-2">Patient Information</h2>
-            <div className="text-black">
-              <p><span className="font-medium">Gender:</span> {patient.gender || 'Unknown'}</p>
-              <p><span className="font-medium">Date of Birth:</span> {patient.birthDate ? new Date(patient.birthDate).toLocaleDateString() : 'Unknown'}</p>
-              <p><span className="font-medium">Marital Status:</span> {patient.marital_status || 'Unknown'}</p>
-              <p><span className="font-medium">Phone:</span> {patient.phone || 'Unknown'}</p>
-            </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-white border border-gray-200 rounded-lg shadow p-6 col-span-1">
+          <div className="flex items-center mb-4">
+            <User className="h-6 w-6 text-blue-500 mr-2" />
+            <h2 className="text-xl font-semibold text-black">Patient Information</h2>
           </div>
-          
-          <div>
-            <h2 className="text-lg font-semibold text-black mb-2">Health Summary</h2>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="bg-blue-50 p-4 rounded-lg text-center">
-                <p className="text-3xl font-bold text-blue-600">{summary?.medicationCount || 0}</p>
-                <p className="text-sm text-black">Medications</p>
+          <div className="space-y-2 text-black">
+            <p className="text-lg font-medium text-gray-800">{patient.formattedName || patient.name}</p>
+            <p className="flex items-center">
+              <User className="h-4 w-4 text-gray-500 mr-1" />
+              <span className="text-gray-800 font-medium mr-1">Gender:</span> 
+              {patient.gender || 'Unknown'}
+            </p>
+            <p className="flex items-center">
+              <Calendar className="h-4 w-4 text-gray-500 mr-1" />
+              <span className="text-gray-800 font-medium mr-1">DOB:</span> 
+              {patient.birthDate ? new Date(patient.birthDate).toLocaleDateString() : 'Unknown'}
+            </p>
+            <p className="flex items-center">
+              <MapPin className="h-6 w-6 text-gray-500 mr-1" />
+              <span className="text-gray-800 font-medium mr-1">Address:</span> 
+              {formatAddress(patient.address)}
+            </p>
+          </div>
+        </div>
+        
+        <div className="bg-white border border-gray-200 rounded-lg shadow p-6 col-span-1 md:col-span-2">
+          <div className="flex items-center mb-4">
+            <FileText className="h-6 w-6 text-blue-500 mr-2" />
+            <h2 className="text-xl font-semibold text-black">Summary</h2>
+          </div>
+          {summary && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-blue-50 rounded-lg p-4 flex items-center">
+                <Pill className="h-8 w-8 text-blue-500 mr-3" />
+                <div>
+                  <div className="text-sm text-gray-700">Medications</div>
+                  <div className="text-2xl font-bold text-gray-800">{summary.medicationCount}</div>
+                </div>
               </div>
-              <div className="bg-green-50 p-4 rounded-lg text-center">
-                <p className="text-3xl font-bold text-green-600">{summary?.conditionCount || 0}</p>
-                <p className="text-sm text-black">Conditions</p>
+              
+              <div className="bg-green-50 rounded-lg p-4 flex items-center">
+                <Heart className="h-8 w-8 text-green-500 mr-3" />
+                <div>
+                  <div className="text-sm text-gray-700">Conditions</div>
+                  <div className="text-2xl font-bold text-gray-800">{summary.conditionCount}</div>
+                </div>
               </div>
-              <div className="bg-purple-50 p-4 rounded-lg text-center">
-                <p className="text-3xl font-bold text-purple-600">{summary?.encounterCount || 0}</p>
-                <p className="text-sm text-black">Encounters</p>
+              
+              <div className="bg-purple-50 rounded-lg p-4 flex items-center">
+                <Clock className="h-8 w-8 text-purple-500 mr-3" />
+                <div>
+                  <div className="text-sm text-gray-700">Encounters</div>
+                  <div className="text-2xl font-bold text-gray-800">{summary.encounterCount}</div>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
       
-      {/* Chat Interface */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-        <h2 className="text-xl font-semibold text-black mb-4">Ask About This Patient</h2>
-        
-        <div className="mb-4 max-h-60 overflow-y-auto">
-          {chatHistory.length > 0 ? (
-            <div className="space-y-4">
-              {chatHistory.map((chat, index) => (
-                <div key={index} className="space-y-2">
-                  <div className="bg-gray-100 p-3 rounded-lg text-black">
-                    <p className="font-medium">Question:</p>
-                    <p>{chat.query}</p>
-                  </div>
-                  <div className="bg-blue-50 p-3 rounded-lg text-black">
-                    <p className="font-medium">Response:</p>
-                    <div className="prose">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{chat.response}</ReactMarkdown>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div></div>
-          )}
-          
-          {chatLoading && (
-            <div className="flex items-center justify-center p-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-              <p className="ml-2 text-gray-600">Generating response...</p>
-            </div>
-          )}
-          
-          {chatResponse && !chatHistory.some(chat => chat.response === chatResponse) && (
-            <div className="mt-4">
-              <div className="bg-gray-100 p-3 rounded-lg text-black">
-                <p className="font-medium">Question:</p>
-                <p>{chatQuery}</p>
-              </div>
-              <div className="bg-blue-50 p-3 rounded-lg text-black mt-2">
-                <p className="font-medium">Response:</p>
-                <div className="prose">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{chatResponse}</ReactMarkdown>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-        
-        <form onSubmit={handleChatSubmit} className="relative">
-          <textarea
-            id="chat-query"
-            rows={2}
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-black resize-none pr-24"
-            placeholder="What questions do you have about this patient?"
-            value={chatQuery}
-            onChange={(e) => setChatQuery(e.target.value)}
-            disabled={chatLoading}
-          />
+      {/* Tabs */}
+      <div className="mb-6 border-b border-gray-200">
+        <div className="flex space-x-2 overflow-x-auto">
           <button
-            type="submit"
-            className="absolute right-2 bottom-1 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-            disabled={!chatQuery.trim() || chatLoading}
+            onClick={() => handleTabChange('overview')}
+            className={`py-3 px-4 font-medium flex items-center ${
+              activeTab === 'overview'
+                ? 'border-b-2 border-blue-500 text-blue-600'
+                : 'text-gray-500 hover:text-blue-500'
+            }`}
           >
-            Send
+            <FileText className="h-4 w-4 mr-1" />
+            Overview
           </button>
-        </form>
+          <button
+            onClick={() => handleTabChange('medications')}
+            className={`py-3 px-4 font-medium flex items-center ${
+              activeTab === 'medications'
+                ? 'border-b-2 border-blue-500 text-blue-600'
+                : 'text-gray-500 hover:text-blue-500'
+            }`}
+          >
+            <Pill className="h-4 w-4 mr-1" />
+            Medications {summary?.medicationCount ? `(${summary.medicationCount})` : ''}
+          </button>
+          <button
+            onClick={() => handleTabChange('conditions')}
+            className={`py-3 px-4 font-medium flex items-center ${
+              activeTab === 'conditions'
+                ? 'border-b-2 border-blue-500 text-blue-600'
+                : 'text-gray-500 hover:text-blue-500'
+            }`}
+          >
+            <Activity className="h-4 w-4 mr-1" />
+            Conditions {summary?.conditionCount ? `(${summary.conditionCount})` : ''}
+          </button>
+          <button
+            onClick={() => handleTabChange('chat')}
+            className={`py-3 px-4 font-medium flex items-center ${
+              activeTab === 'chat'
+                ? 'border-b-2 border-blue-500 text-blue-600'
+                : 'text-gray-500 hover:text-blue-500'
+            }`}
+          >
+            <MessageCircle className="h-4 w-4 mr-1" />
+            AI Assistant
+          </button>
+        </div>
       </div>
       
-      <div className="mb-8">
-        <div className="border-b border-gray-200">
-          <nav className="flex -mb-px">
-            <button
-              onClick={() => handleTabChange('overview')}
-              className={`py-4 px-6 font-medium text-sm border-b-2 ${
-                activeTab === 'overview'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-black hover:text-gray-900 hover:border-gray-300'
-              }`}
-            >
-              Overview
-            </button>
-            <button
-              onClick={() => handleTabChange('medications')}
-              className={`py-4 px-6 font-medium text-sm border-b-2 ${
-                activeTab === 'medications'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-black hover:text-gray-900 hover:border-gray-300'
-              }`}
-            >
-              Medications ({summary?.medicationCount || 0})
-            </button>
-            <button
-              onClick={() => handleTabChange('conditions')}
-              className={`py-4 px-6 font-medium text-sm border-b-2 ${
-                activeTab === 'conditions'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-black hover:text-gray-900 hover:border-gray-300'
-              }`}
-            >
-              Conditions ({summary?.conditionCount || 0})
-            </button>
-          </nav>
-        </div>
-        
-        <div className="mt-6">
-          {activeTab === 'overview' && (
-            <div>
-              <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-                <h2 className="text-xl font-semibold text-black mb-4">Patient Overview</h2>
-                <p className="text-black mb-6">
-                  This dashboard provides a comprehensive view of {patient.name}'s health records, 
-                  including medications, conditions, and AI-generated insights.
-                </p>
-                
+      {/* Tab Content */}
+      <div>
+        {activeTab === 'overview' && (
+          <div>
+            <div className="bg-white border border-gray-200 rounded-lg shadow p-6 mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center">
+                  <Brain className="h-5 w-5 text-blue-500 mr-2" />
+                  <h3 className="text-lg font-semibold text-black">Comprehensive Analysis</h3>
+                </div>
                 <button
                   onClick={() => fetchInsights('comprehensive')}
-                  className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md shadow-sm transition-colors"
+                  className="px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-full text-sm flex items-center"
                 >
-                  Generate Comprehensive Insights
+                  <PlusCircle className="h-3 w-3 mr-1" />
+                  Generate Insights
                 </button>
               </div>
               
-              {insightsLoading ? (
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <div className="flex justify-center items-center h-32">
-                    <div className="text-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-                      <p className="mt-4 text-black">Generating insights...</p>
-                    </div>
-                  </div>
+              {insightsLoading && activeTab === 'overview' ? (
+                <div className="flex justify-center items-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+                  <span className="ml-2 text-gray-700">Generating analysis...</span>
                 </div>
-              ) : insights ? (
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <h2 className="text-xl font-semibold text-black mb-4">AI-Generated Insights</h2>
-                  <div className="prose max-w-none text-black overflow-x-auto">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{insights}</ReactMarkdown>
-                  </div>
+              ) : insights && (
+                <div className="prose max-w-none text-black">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {insights}
+                  </ReactMarkdown>
                 </div>
-              ) : null}
+              )}
             </div>
-          )}
-          
-          {activeTab === 'medications' && (
-            <div>
-              <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-                <h2 className="text-xl font-semibold text-black mb-4">Medication History</h2>
-                
+          </div>
+        )}
+        
+        {activeTab === 'medications' && (
+          <div>
+            <div className="bg-white border border-gray-200 rounded-lg shadow mb-6">
+              <div className="p-6 pb-3 border-b border-gray-200">
+                <div className="flex items-center">
+                  <Pill className="h-5 w-5 text-blue-500 mr-2" />
+                  <h3 className="text-lg font-semibold text-black">Medications</h3>
+                </div>
+              </div>
+              
+              <ul className="divide-y divide-gray-200">
                 {medications.length === 0 ? (
-                  <p className="text-black">No medication records found for this patient.</p>
+                  <li className="p-6 text-gray-700 italic">No medications found</li>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">Medication</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">Start Date</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">End Date</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">Status</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">Dosage</th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {medications.map((medication) => (
-                          <tr key={medication.id}>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-black">{medication.medication}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
-                              {medication.start_date ? new Date(medication.start_date).toLocaleDateString() : 'Unknown'}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
-                              {medication.end_date ? new Date(medication.end_date).toLocaleDateString() : 'Ongoing'}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-black">{medication.status || 'Unknown'}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-black">{medication.dosage || 'Not specified'}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                  medications.map((med, index) => (
+                    <li key={index} className="p-6">
+                      <div className="flex items-start">
+                        <Pill className="h-5 w-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" />
+                        <div>
+                          <h4 className="font-medium text-black">{med.medication}</h4>
+                          {med.dosage && <p className="text-sm text-gray-700">Dosage: {med.dosage}</p>}
+                          {med.status && <p className="text-sm text-gray-700">Status: {med.status}</p>}
+                          {med.start_date && (
+                            <p className="text-sm text-gray-700">
+                              Date: {new Date(med.start_date).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </li>
+                  ))
                 )}
+              </ul>
+            </div>
+            
+            <div className="bg-white border border-gray-200 rounded-lg shadow p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center">
+                  <Brain className="h-5 w-5 text-blue-500 mr-2" />
+                  <h3 className="text-lg font-semibold text-black">Medication Analysis</h3>
+                </div>
+                <button
+                  onClick={() => fetchInsights('medications')}
+                  className="px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-full text-sm flex items-center"
+                >
+                  <PlusCircle className="h-3 w-3 mr-1" />
+                  Refresh Insights
+                </button>
               </div>
               
-              {insightsLoading ? (
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <div className="flex justify-center items-center h-32">
-                    <div className="text-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-                      <p className="mt-4 text-black">Generating medication insights...</p>
-                    </div>
-                  </div>
+              {insightsLoading && activeTab === 'medications' ? (
+                <div className="flex justify-center items-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+                  <span className="ml-2 text-gray-700">Analyzing medications...</span>
                 </div>
               ) : insights ? (
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <h2 className="text-xl font-semibold text-black mb-4">Medication Insights</h2>
-                  <div className="prose max-w-none text-black overflow-x-auto">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{insights}</ReactMarkdown>
-                  </div>
+                <div className="prose max-w-none text-black">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {insights}
+                  </ReactMarkdown>
                 </div>
-              ) : null}
+              ) : (
+                <p className="text-gray-700 italic">Click "Refresh Insights" to generate analysis</p>
+              )}
             </div>
-          )}
-          
-          {activeTab === 'conditions' && (
-            <div>
-              <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-                <h2 className="text-xl font-semibold text-black mb-4">Condition History</h2>
-                
+          </div>
+        )}
+        
+        {activeTab === 'conditions' && (
+          <div>
+            <div className="bg-white border border-gray-200 rounded-lg shadow mb-6">
+              <div className="p-6 pb-3 border-b border-gray-200">
+                <div className="flex items-center">
+                  <Activity className="h-5 w-5 text-blue-500 mr-2" />
+                  <h3 className="text-lg font-semibold text-black">Conditions</h3>
+                </div>
+              </div>
+              
+              <ul className="divide-y divide-gray-200">
                 {conditions.length === 0 ? (
-                  <p className="text-black">No condition records found for this patient.</p>
+                  <li className="p-6 text-gray-700 italic">No conditions found</li>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">Condition</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">Code</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">Onset Date</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">Abatement Date</th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {conditions.map((condition) => (
-                          <tr key={condition.id}>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-black">{condition.condition}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-black">{condition.condition_code || 'Unknown'}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
-                              {condition.onset_date ? new Date(condition.onset_date).toLocaleDateString() : 'Unknown'}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
-                              {condition.abatement_date ? new Date(condition.abatement_date).toLocaleDateString() : 'Ongoing'}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                  conditions.map((condition, index) => (
+                    <li key={index} className="p-6">
+                      <div className="flex items-start">
+                        <Activity className="h-5 w-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" />
+                        <div>
+                          <h4 className="font-medium text-black">{condition.condition}</h4>
+                          {condition.onset_date && (
+                            <p className="text-sm text-gray-700">
+                              Onset date: {new Date(condition.onset_date).toLocaleDateString()}
+                            </p>
+                          )}
+                          {condition.abatement_date && (
+                            <p className="text-sm text-gray-700">
+                              End date: {new Date(condition.abatement_date).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </li>
+                  ))
+                )}
+              </ul>
+            </div>
+            
+            <div className="bg-white border border-gray-200 rounded-lg shadow p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center">
+                  <Brain className="h-5 w-5 text-blue-500 mr-2" />
+                  <h3 className="text-lg font-semibold text-black">Condition Analysis</h3>
+                </div>
+                <button
+                  onClick={() => fetchInsights('conditions')}
+                  className="px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-full text-sm flex items-center"
+                >
+                  <PlusCircle className="h-3 w-3 mr-1" />
+                  Refresh Insights
+                </button>
+              </div>
+              
+              {insightsLoading && activeTab === 'conditions' ? (
+                <div className="flex justify-center items-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+                  <span className="ml-2 text-gray-700">Analyzing conditions...</span>
+                </div>
+              ) : insights ? (
+                <div className="prose max-w-none text-black">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {insights}
+                  </ReactMarkdown>
+                </div>
+              ) : (
+                <p className="text-gray-700 italic">Click "Refresh Insights" to generate analysis</p>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {activeTab === 'chat' && (
+          <div className="bg-white border border-gray-200 rounded-lg shadow">
+            <div className="p-6 pb-3 border-b border-gray-200">
+              <div className="flex items-center">
+                <MessageCircle className="h-5 w-5 text-blue-500 mr-2" />
+                <h3 className="text-lg font-semibold text-black">AI Medical Assistant</h3>
+              </div>
+              <p className="text-gray-700 text-sm mt-1">Ask questions about the patient's health record</p>
+            </div>
+            
+            <div className="p-6">
+              <div className="mb-6 max-h-96 overflow-y-auto">
+                {chatHistory.length === 0 ? (
+                  <p className="text-center text-gray-700 italic py-12">
+                    No conversations yet. Ask a question to get started.
+                  </p>
+                ) : (
+                  <div className="space-y-6">
+                    {chatHistory.map((item, index) => (
+                      <div key={index} className="space-y-4">
+                        <div className="bg-blue-50 p-4 rounded-lg rounded-br-none">
+                          <div className="flex items-start">
+                            <User className="h-5 w-5 text-blue-600 mt-0.5 mr-2 flex-shrink-0" />
+                            <div className="text-blue-800">{item.query}</div>
+                          </div>
+                        </div>
+                        <div className="bg-gray-100 p-4 rounded-lg rounded-bl-none">
+                          <div className="flex items-start">
+                            <MessageCircle className="h-5 w-5 text-gray-600 mt-0.5 mr-2 flex-shrink-0" />
+                            <div className="prose prose-sm max-w-none text-black">
+                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                {item.response}
+                              </ReactMarkdown>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {chatResponse && (
+                  <div className="space-y-4">
+                    <div className="bg-blue-50 p-4 rounded-lg rounded-br-none">
+                      <div className="flex items-start">
+                        <User className="h-5 w-5 text-blue-600 mt-0.5 mr-2 flex-shrink-0" />
+                        <div className="text-blue-800">{chatQuery}</div>
+                      </div>
+                    </div>
+                    <div className="bg-gray-100 p-4 rounded-lg rounded-bl-none">
+                      <div className="flex items-start">
+                        <MessageCircle className="h-5 w-5 text-gray-600 mt-0.5 mr-2 flex-shrink-0" />
+                        <div className="prose prose-sm max-w-none text-black">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {chatResponse}
+                          </ReactMarkdown>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {chatLoading && (
+                  <div className="flex items-center justify-center p-4">
+                    <Loader2 className="h-5 w-5 animate-spin text-blue-500 mr-2" />
+                    <span className="text-gray-700">Generating response...</span>
                   </div>
                 )}
               </div>
               
-              {insightsLoading ? (
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <div className="flex justify-center items-center h-32">
-                    <div className="text-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-                      <p className="mt-4 text-black">Generating condition insights...</p>
-                    </div>
-                  </div>
+              <form onSubmit={handleChatSubmit} className="flex items-end">
+                <div className="flex-grow">
+                  <label htmlFor="chatQuery" className="block text-sm font-medium text-gray-700 mb-1">
+                    Your question
+                  </label>
+                  <input
+                    type="text"
+                    id="chatQuery"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3 border"
+                    placeholder="Ask about medications, conditions, or potential interactions..."
+                    value={chatQuery}
+                    onChange={(e) => setChatQuery(e.target.value)}
+                  />
                 </div>
-              ) : insights ? (
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <h2 className="text-xl font-semibold text-black mb-4">Condition Insights</h2>
-                  <div className="prose max-w-none text-black overflow-x-auto">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{insights}</ReactMarkdown>
-                  </div>
-                </div>
-              ) : null}
+                <button
+                  type="submit"
+                  className="ml-3 inline-flex justify-center items-center rounded-md border border-transparent bg-blue-600 px-4 py-3 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  disabled={chatLoading || !chatQuery.trim()}
+                >
+                  <Send className="h-4 w-4 mr-1" />
+                  Send
+                </button>
+              </form>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

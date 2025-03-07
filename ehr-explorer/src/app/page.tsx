@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Patient } from '@/utils/database';
+import { Search, Loader2, UserCircle, Calendar, Users } from 'lucide-react';
 
 export default function Home() {
   const [patients, setPatients] = useState<Patient[]>([]);
@@ -40,16 +41,22 @@ export default function Home() {
   return (
     <div className="max-w-6xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-black mb-4">Patient Directory</h1>
+        <div className="flex items-center mb-4">
+          <Users className="h-7 w-7 mr-2 text-blue-500" />
+          <h1 className="text-3xl font-bold text-black">Patient Directory</h1>
+        </div>
         <p className="text-black mb-6">
           Select a patient to view their health records and AI-generated insights.
         </p>
         
-        <div className="mb-6">
+        <div className="relative mb-6">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-5 w-5 text-gray-400" />
+          </div>
           <input
             type="text"
             placeholder="Search patients by name..."
-            className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-black placeholder-gray-700"
+            className="w-full pl-10 p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-black placeholder-gray-700"
             value={searchQuery}
             onChange={handleSearch}
           />
@@ -59,7 +66,7 @@ export default function Home() {
       {loading ? (
         <div className="flex justify-center items-center h-64">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+            <Loader2 className="h-12 w-12 animate-spin text-blue-500 mx-auto" />
             <p className="mt-4 text-black">Loading patients...</p>
           </div>
         </div>
@@ -80,10 +87,20 @@ export default function Home() {
               className="block"
             >
               <div className="border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow p-6 bg-white">
-                <h2 className="text-xl font-semibold text-black mb-2">{patient.formattedName || patient.name}</h2>
-                <div className="text-black text-sm">
-                  <p>Gender: {patient.gender || 'Unknown'}</p>
-                  <p>DOB: {patient.birthDate ? new Date(patient.birthDate).toLocaleDateString() : 'Unknown'}</p>
+                <div className="flex items-center mb-3">
+                  <UserCircle className="h-6 w-6 text-blue-500 mr-2" />
+                  <h2 className="text-xl font-semibold text-black">{patient.formattedName || patient.name}</h2>
+                </div>
+                <div className="text-black text-sm space-y-1">
+                  <div className="flex items-center">
+                    <span className="w-16 font-medium">Gender:</span>
+                    <span>{patient.gender || 'Unknown'}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Calendar className="h-4 w-4 text-gray-500 mr-1" />
+                    <span className="w-12 font-medium">DOB:</span>
+                    <span>{patient.birthDate ? new Date(patient.birthDate).toLocaleDateString() : 'Unknown'}</span>
+                  </div>
                 </div>
               </div>
             </Link>
