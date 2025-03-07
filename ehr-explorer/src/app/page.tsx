@@ -224,7 +224,7 @@ export default function Home() {
             <h2 className="text-lg font-medium text-black">Upload Patient Data</h2>
           </div>
           <p className="text-sm text-gray-600 mb-4">
-            Upload Synthea patient JSON files to add them to the directory.
+            Upload patient JSON files to add them to the directory.
           </p>
           
           <div className="flex items-center space-x-4">
