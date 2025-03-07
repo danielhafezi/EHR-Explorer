@@ -60,7 +60,21 @@ export async function generateMedicationInsights(
     )
     .join("\n")}
   
-  Please provide your longitudinal analysis of this patient's medication patterns. Be short and Consice and do not include Patient's name, Gender, DOB, Marital Status and Phone Number.
+  FORMAT YOUR RESPONSE AS FOLLOWS:
+  1. Medication Patterns: [Your analysis of medication usage patterns over time]
+  
+  2. Adherence Assessment: [Your analysis of potential adherence issues]
+  
+  3. Drug Interactions & Changes: [Your analysis of concerning combinations or therapy changes]
+  
+  4. Regimen Optimization: [Your recommendations for improving the medication regimen]
+  
+  Important:
+  - Use proper Markdown formatting with **bold** for emphasis
+  - Each section should be clearly numbered and labeled
+  - Be concise and focused on clinical insights
+  - Do not include patient's name, gender, DOB, marital status, or phone number
+  - Do not include any asterisks (**) as standalone separators
   `;
 
   try {
@@ -102,7 +116,23 @@ export async function generateConditionInsights(
     )
     .join("\n")}
   
-  Please provide your longitudinal analysis of this patient's condition progression. Be short and Consice and do not include Patient's name, Gender, DOB, Marital Status and Phone Number.
+  Please provide your longitudinal analysis of this patient's condition progression. 
+  
+  FORMAT YOUR RESPONSE AS FOLLOWS:
+  1. Condition Progression: [Your analysis of how conditions have progressed over time]
+  
+  2. Condition Relationships: [Your analysis of how conditions might be related]
+  
+  3. Future Trajectory: [Your analysis of the likely progression of these conditions]
+  
+  4. Monitoring & Treatment: [Your recommendations for monitoring and treatment]
+  
+  Important:
+  - Use proper Markdown formatting with **bold** for emphasis
+  - Each section should be clearly numbered and labeled
+  - Be concise and focused on clinical insights
+  - Do not include patient's name, gender, DOB, marital status, or phone number
+  - Do not include any asterisks (**) as standalone separators
   `;
 
   try {
@@ -155,7 +185,21 @@ export async function generateComprehensiveInsights(
     )
     .join("\n")}
   
-  Please provide your comprehensive longitudinal analysis of this patient's health. Be short and Consice and do not include Patient's name, Gender, DOB, Marital Status and Phone Number.
+  FORMAT YOUR RESPONSE AS FOLLOWS:
+  1. Relationships Between Conditions and Medications: [Your analysis of how conditions and medications are related]
+  
+  2. Potential Areas of Concern: [Your analysis of concerning aspects of the treatment plan]
+  
+  3. Suggestions for Comprehensive Care: [Your recommendations for optimizing care]
+  
+  4. Temporal Patterns: [Your analysis of patterns over time in conditions and medications]
+  
+  Important:
+  - Use proper Markdown formatting with **bold** for emphasis
+  - Each section should be clearly numbered and labeled
+  - Be concise and focused on clinical insights
+  - Do not include patient's name, gender, DOB, marital status, or phone number
+  - Do not include any asterisks (**) as standalone separators
   `;
 
   try {

@@ -10,7 +10,11 @@ import {
   User, Pill, Activity, List, ChevronLeft, 
   FileText, MessageCircle, Send, Loader2, 
   Brain, ChevronRight, Clock, Heart, PlusCircle,
-  Calendar, MapPin
+  Calendar, MapPin,
+  AlarmClock, CheckCircle2, XCircle, AlertTriangle,
+  ArrowRight, BookOpen, Stethoscope, RefreshCw,
+  ClipboardList, TrendingUp, ListChecks, Users,
+  Zap, ChevronUp, ChevronDown
 } from 'lucide-react';
 
 interface PatientSummary {
@@ -23,6 +27,166 @@ interface PatientDetailProps {
   params: {
     id: string;
   };
+}
+
+// Insight Panel Component for structured display of AI insights
+interface InsightPanelProps {
+  insights: string | null;
+  loading: boolean;
+  insightType: string | null;
+  currentType: string;
+  onRefresh: () => void;
+  title: string;
+}
+
+function InsightPanel({ 
+  insights, 
+  loading, 
+  insightType, 
+  currentType, 
+  onRefresh, 
+  title 
+}: InsightPanelProps) {
+  // Function to clean up standalone ** symbols that aren't part of markdown formatting
+  const cleanMarkdown = (text: string) => {
+    // Remove standalone ** that are used as visual separators
+    return text
+      .replace(/^\s*\*\*\s*$/gm, '') // Remove lines that only contain **
+      .replace(/^\s*\*\*\s*/gm, '')  // Remove ** at the beginning of lines
+      .replace(/\s*\*\*\s*$/gm, '')  // Remove ** at the end of lines
+      .trim();
+  };
+  
+  // Function to parse the insights content and structure it
+  const renderStructuredInsights = (content: string) => {
+    if (!content) return null;
+    
+    // Clean up the content before processing
+    const cleanedContent = cleanMarkdown(content);
+    
+    // Handle case where content doesn't match our expected format
+    if (!cleanedContent.match(/\d+\.\s+[A-Za-z]/)) {
+      return (
+        <div className="prose max-w-none text-black">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            {cleanedContent}
+          </ReactMarkdown>
+        </div>
+      );
+    }
+    
+    // Split content by numbered sections
+    const sections = cleanedContent.split(/\d+\.\s+/).filter(section => section.trim().length > 0);
+    
+    // Extract headings and content
+    return sections.map((section, index) => {
+      // Find the first colon to separate heading from content
+      const colonIndex = section.indexOf(':');
+      if (colonIndex === -1) return null;
+      
+      const heading = section.substring(0, colonIndex).trim();
+      const content = section.substring(colonIndex + 1).trim();
+      
+      // Icons based on common health-related terms
+      let icon = <ClipboardList className="h-5 w-5" />;
+      if (/medication|simvastatin|acetaminophen|prescription/i.test(heading)) {
+        icon = <Pill className="h-5 w-5" />;
+      } else if (/condition|prediabetes|anemia|bronchitis/i.test(heading)) {
+        icon = <Stethoscope className="h-5 w-5" />;
+      } else if (/review|suggestion|recommendation/i.test(heading)) {
+        icon = <CheckCircle2 className="h-5 w-5" />;
+      } else if (/concern|warning|alert/i.test(heading)) {
+        icon = <AlertTriangle className="h-5 w-5" />;
+      } else if (/pattern|temporal|relationship/i.test(heading)) {
+        icon = <TrendingUp className="h-5 w-5" />;
+      } else if (/adherence|monitoring|support/i.test(heading)) {
+        icon = <Users className="h-5 w-5" />;
+      }
+      
+      // Render markdown for all text content
+      const renderMarkdownText = (text: string) => (
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+          {text}
+        </ReactMarkdown>
+      );
+      
+      return (
+        <div key={index} className="mb-5 last:mb-0">
+          <div className="flex items-start mb-2">
+            <div className="p-2 rounded-full bg-blue-50 text-blue-600 mr-3 mt-0.5">
+              {icon}
+            </div>
+            <h4 className="text-lg font-semibold text-gray-800">
+              {renderMarkdownText(heading)}
+            </h4>
+          </div>
+          <div className="ml-12 text-gray-700 prose">
+            {content.split('\n').map((paragraph, i) => {
+              // Clean each paragraph
+              const cleanedPara = cleanMarkdown(paragraph);
+              
+              if (!cleanedPara) return null; // Skip empty paragraphs after cleaning
+              
+              if (cleanedPara.trim().startsWith('- ')) {
+                // It's a list item
+                return (
+                  <div key={i} className="flex items-start mb-1">
+                    <ChevronRight className="h-4 w-4 text-blue-500 mr-1 mt-1 flex-shrink-0" />
+                    <div className="prose">
+                      {renderMarkdownText(cleanedPara.substring(2))}
+                    </div>
+                  </div>
+                );
+              } else if (cleanedPara.trim()) {
+                // Regular paragraph with markdown
+                return (
+                  <div key={i} className="mb-2 prose">
+                    {renderMarkdownText(cleanedPara)}
+                  </div>
+                );
+              }
+              return null;
+            })}
+          </div>
+        </div>
+      );
+    });
+  };
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg shadow p-6">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center">
+          <Brain className="h-6 w-6 text-blue-500 mr-2" />
+          <h3 className="text-xl font-semibold text-black">{title}</h3>
+        </div>
+        <button
+          onClick={onRefresh}
+          className="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-full text-sm flex items-center transition-colors"
+        >
+          <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+          Refresh Insights
+        </button>
+      </div>
+      
+      {loading && insightType === currentType ? (
+        <div className="flex justify-center items-center py-16 bg-gray-50 rounded-lg">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+          <span className="ml-3 text-gray-700 font-medium">Analyzing data...</span>
+        </div>
+      ) : insights ? (
+        <div className="divide-y divide-gray-100">
+          {renderStructuredInsights(insights)}
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center py-16 bg-gray-50 rounded-lg text-gray-500">
+          <BookOpen className="h-12 w-12 text-gray-300 mb-3" />
+          <p className="text-center mb-2">No insights available yet</p>
+          <p className="text-sm text-center">Click "Refresh Insights" to generate an analysis</p>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function PatientDetail({ params }: PatientDetailProps) {
@@ -39,6 +203,10 @@ export default function PatientDetail({ params }: PatientDetailProps) {
   const [error, setError] = useState<string | null>(null);
   const [insights, setInsights] = useState<string | null>(null);
   const [insightsLoading, setInsightsLoading] = useState<boolean>(false);
+  
+  // Add states to track expanded/collapsed sections
+  const [medicationsExpanded, setMedicationsExpanded] = useState<boolean>(true);
+  const [conditionsExpanded, setConditionsExpanded] = useState<boolean>(true);
   
   // Add separate state for each tab's insights
   const [overviewInsights, setOverviewInsights] = useState<string | null>(null);
@@ -400,34 +568,14 @@ export default function PatientDetail({ params }: PatientDetailProps) {
       <div>
         {activeTab === 'overview' && (
           <div>
-            <div className="bg-white border border-gray-200 rounded-lg shadow p-6 mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center">
-                  <Brain className="h-5 w-5 text-blue-500 mr-2" />
-                  <h3 className="text-lg font-semibold text-black">Comprehensive Analysis</h3>
-                </div>
-                <button
-                  onClick={() => fetchInsights('comprehensive')}
-                  className="px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-full text-sm flex items-center"
-                >
-                  <PlusCircle className="h-3 w-3 mr-1" />
-                  Generate Insights
-                </button>
-              </div>
-              
-              {insightsLoading && insightType === 'comprehensive' ? (
-                <div className="flex justify-center items-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-                  <span className="ml-2 text-gray-700">Generating analysis...</span>
-                </div>
-              ) : overviewInsights && (
-                <div className="prose max-w-none text-black">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {overviewInsights}
-                  </ReactMarkdown>
-                </div>
-              )}
-            </div>
+            <InsightPanel 
+              insights={overviewInsights}
+              loading={insightsLoading}
+              insightType={insightType}
+              currentType="comprehensive"
+              onRefresh={() => fetchInsights('comprehensive')}
+              title="Comprehensive Analysis"
+            />
           </div>
         )}
         
@@ -435,67 +583,59 @@ export default function PatientDetail({ params }: PatientDetailProps) {
           <div>
             <div className="bg-white border border-gray-200 rounded-lg shadow mb-6">
               <div className="p-6 pb-3 border-b border-gray-200">
-                <div className="flex items-center">
-                  <Pill className="h-5 w-5 text-blue-500 mr-2" />
-                  <h3 className="text-lg font-semibold text-black">Medications</h3>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Pill className="h-5 w-5 text-blue-500 mr-2" />
+                    <h3 className="text-lg font-semibold text-black">Medications</h3>
+                  </div>
+                  <button 
+                    onClick={() => setMedicationsExpanded(!medicationsExpanded)}
+                    className="text-gray-500 hover:text-blue-500"
+                    aria-label={medicationsExpanded ? "Collapse medications" : "Expand medications"}
+                  >
+                    {medicationsExpanded ? 
+                      <ChevronUp className="h-5 w-5" /> : 
+                      <ChevronDown className="h-5 w-5" />
+                    }
+                  </button>
                 </div>
               </div>
               
-              <ul className="divide-y divide-gray-200">
-                {medications.length === 0 ? (
-                  <li className="p-6 text-gray-700 italic">No medications found</li>
-                ) : (
-                  medications.map((med, index) => (
-                    <li key={index} className="p-6">
-                      <div className="flex items-start">
-                        <Pill className="h-5 w-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" />
-                        <div>
-                          <h4 className="font-medium text-black">{med.medication}</h4>
-                          {med.dosage && <p className="text-sm text-gray-700">Dosage: {med.dosage}</p>}
-                          {med.status && <p className="text-sm text-gray-700">Status: {med.status}</p>}
-                          {med.start_date && (
-                            <p className="text-sm text-gray-700">
-                              Date: {new Date(med.start_date).toLocaleDateString()}
-                            </p>
-                          )}
+              {medicationsExpanded && (
+                <ul className="divide-y divide-gray-200">
+                  {medications.length === 0 ? (
+                    <li className="p-6 text-gray-700 italic">No medications found</li>
+                  ) : (
+                    medications.map((med, index) => (
+                      <li key={index} className="p-6">
+                        <div className="flex items-start">
+                          <Pill className="h-5 w-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" />
+                          <div>
+                            <h4 className="font-medium text-black">{med.medication}</h4>
+                            {med.dosage && <p className="text-sm text-gray-700">Dosage: {med.dosage}</p>}
+                            {med.status && <p className="text-sm text-gray-700">Status: {med.status}</p>}
+                            {med.start_date && (
+                              <p className="text-sm text-gray-700">
+                                Date: {new Date(med.start_date).toLocaleDateString()}
+                              </p>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </li>
-                  ))
-                )}
-              </ul>
-            </div>
-            
-            <div className="bg-white border border-gray-200 rounded-lg shadow p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center">
-                  <Brain className="h-5 w-5 text-blue-500 mr-2" />
-                  <h3 className="text-lg font-semibold text-black">Medication Analysis</h3>
-                </div>
-                <button
-                  onClick={() => fetchInsights('medications')}
-                  className="px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-full text-sm flex items-center"
-                >
-                  <PlusCircle className="h-3 w-3 mr-1" />
-                  Refresh Insights
-                </button>
-              </div>
-              
-              {insightsLoading && insightType === 'medications' ? (
-                <div className="flex justify-center items-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-                  <span className="ml-2 text-gray-700">Analyzing medications...</span>
-                </div>
-              ) : medicationInsights ? (
-                <div className="prose max-w-none text-black">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {medicationInsights}
-                  </ReactMarkdown>
-                </div>
-              ) : (
-                <p className="text-gray-700 italic">Click "Refresh Insights" to generate analysis</p>
+                      </li>
+                    ))
+                  )}
+                </ul>
               )}
             </div>
+            
+            <InsightPanel 
+              insights={medicationInsights}
+              loading={insightsLoading}
+              insightType={insightType}
+              currentType="medications"
+              onRefresh={() => fetchInsights('medications')}
+              title="Medication Analysis"
+            />
           </div>
         )}
         
@@ -503,70 +643,62 @@ export default function PatientDetail({ params }: PatientDetailProps) {
           <div>
             <div className="bg-white border border-gray-200 rounded-lg shadow mb-6">
               <div className="p-6 pb-3 border-b border-gray-200">
-                <div className="flex items-center">
-                  <Activity className="h-5 w-5 text-blue-500 mr-2" />
-                  <h3 className="text-lg font-semibold text-black">Conditions</h3>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Activity className="h-5 w-5 text-blue-500 mr-2" />
+                    <h3 className="text-lg font-semibold text-black">Conditions</h3>
+                  </div>
+                  <button 
+                    onClick={() => setConditionsExpanded(!conditionsExpanded)}
+                    className="text-gray-500 hover:text-blue-500"
+                    aria-label={conditionsExpanded ? "Collapse conditions" : "Expand conditions"}
+                  >
+                    {conditionsExpanded ? 
+                      <ChevronUp className="h-5 w-5" /> : 
+                      <ChevronDown className="h-5 w-5" />
+                    }
+                  </button>
                 </div>
               </div>
               
-              <ul className="divide-y divide-gray-200">
-                {conditions.length === 0 ? (
-                  <li className="p-6 text-gray-700 italic">No conditions found</li>
-                ) : (
-                  conditions.map((condition, index) => (
-                    <li key={index} className="p-6">
-                      <div className="flex items-start">
-                        <Activity className="h-5 w-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" />
-                        <div>
-                          <h4 className="font-medium text-black">{condition.condition}</h4>
-                          {condition.onset_date && (
-                            <p className="text-sm text-gray-700">
-                              Onset date: {new Date(condition.onset_date).toLocaleDateString()}
-                            </p>
-                          )}
-                          {condition.abatement_date && (
-                            <p className="text-sm text-gray-700">
-                              End date: {new Date(condition.abatement_date).toLocaleDateString()}
-                            </p>
-                          )}
+              {conditionsExpanded && (
+                <ul className="divide-y divide-gray-200">
+                  {conditions.length === 0 ? (
+                    <li className="p-6 text-gray-700 italic">No conditions found</li>
+                  ) : (
+                    conditions.map((condition, index) => (
+                      <li key={index} className="p-6">
+                        <div className="flex items-start">
+                          <Activity className="h-5 w-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" />
+                          <div>
+                            <h4 className="font-medium text-black">{condition.condition}</h4>
+                            {condition.onset_date && (
+                              <p className="text-sm text-gray-700">
+                                Onset date: {new Date(condition.onset_date).toLocaleDateString()}
+                              </p>
+                            )}
+                            {condition.abatement_date && (
+                              <p className="text-sm text-gray-700">
+                                End date: {new Date(condition.abatement_date).toLocaleDateString()}
+                              </p>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </li>
-                  ))
-                )}
-              </ul>
-            </div>
-            
-            <div className="bg-white border border-gray-200 rounded-lg shadow p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center">
-                  <Brain className="h-5 w-5 text-blue-500 mr-2" />
-                  <h3 className="text-lg font-semibold text-black">Condition Analysis</h3>
-                </div>
-                <button
-                  onClick={() => fetchInsights('conditions')}
-                  className="px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-full text-sm flex items-center"
-                >
-                  <PlusCircle className="h-3 w-3 mr-1" />
-                  Refresh Insights
-                </button>
-              </div>
-              
-              {insightsLoading && insightType === 'conditions' ? (
-                <div className="flex justify-center items-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-                  <span className="ml-2 text-gray-700">Analyzing conditions...</span>
-                </div>
-              ) : conditionInsights ? (
-                <div className="prose max-w-none text-black">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {conditionInsights}
-                  </ReactMarkdown>
-                </div>
-              ) : (
-                <p className="text-gray-700 italic">Click "Refresh Insights" to generate analysis</p>
+                      </li>
+                    ))
+                  )}
+                </ul>
               )}
             </div>
+            
+            <InsightPanel 
+              insights={conditionInsights}
+              loading={insightsLoading}
+              insightType={insightType}
+              currentType="conditions"
+              onRefresh={() => fetchInsights('conditions')}
+              title="Condition Analysis"
+            />
           </div>
         )}
         
