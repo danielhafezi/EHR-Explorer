@@ -40,6 +40,12 @@ export default function PatientDetail({ params }: PatientDetailProps) {
   const [insights, setInsights] = useState<string | null>(null);
   const [insightsLoading, setInsightsLoading] = useState<boolean>(false);
   
+  // Add separate state for each tab's insights
+  const [overviewInsights, setOverviewInsights] = useState<string | null>(null);
+  const [medicationInsights, setMedicationInsights] = useState<string | null>(null);
+  const [conditionInsights, setConditionInsights] = useState<string | null>(null);
+  const [insightType, setInsightType] = useState<string | null>(null);
+  
   // Chat-related state
   const [chatQuery, setChatQuery] = useState<string>('');
   const [chatResponse, setChatResponse] = useState<string | null>(null);
@@ -125,15 +131,15 @@ export default function PatientDetail({ params }: PatientDetailProps) {
   // Add a new useEffect to automatically fetch comprehensive analysis when patient data is loaded
   useEffect(() => {
     // Only fetch insights when patient data has been loaded successfully
-    if (patient && !loading && !error) {
+    if (patient && !loading && !error && !overviewInsights) {
       fetchInsights('comprehensive');
     }
-  }, [patient, loading, error]);
+  }, [patient, loading, error, overviewInsights]);
 
   const fetchInsights = async (type: string) => {
     try {
       setInsightsLoading(true);
-      setInsights(null);
+      setInsightType(type);
       
       let endpoint = '';
       switch (type) {
@@ -156,23 +162,32 @@ export default function PatientDetail({ params }: PatientDetailProps) {
       }
       
       const data = await response.json();
-      setInsights(data.insights);
+      
+      // Update the appropriate insights state based on type
+      if (type === 'comprehensive') {
+        setOverviewInsights(data.insights);
+      } else if (type === 'medications') {
+        setMedicationInsights(data.insights);
+      } else if (type === 'conditions') {
+        setConditionInsights(data.insights);
+      }
+      
     } catch (err) {
       console.error(`Error fetching ${type} insights:`, err);
       setError(`Failed to load ${type} insights. Please try again.`);
     } finally {
       setInsightsLoading(false);
+      setInsightType(null);
     }
   };
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
-    setInsights(null);
     
-    // Automatically fetch insights when switching to certain tabs
-    if (tab === 'medications' && medications.length > 0) {
+    // Fetch insights only if they don't already exist for the selected tab
+    if (tab === 'medications' && medications.length > 0 && !medicationInsights) {
       fetchInsights('medications');
-    } else if (tab === 'conditions' && conditions.length > 0) {
+    } else if (tab === 'conditions' && conditions.length > 0 && !conditionInsights) {
       fetchInsights('conditions');
     }
   };
@@ -400,15 +415,15 @@ export default function PatientDetail({ params }: PatientDetailProps) {
                 </button>
               </div>
               
-              {insightsLoading && activeTab === 'overview' ? (
+              {insightsLoading && insightType === 'comprehensive' ? (
                 <div className="flex justify-center items-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
                   <span className="ml-2 text-gray-700">Generating analysis...</span>
                 </div>
-              ) : insights && (
+              ) : overviewInsights && (
                 <div className="prose max-w-none text-black">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {insights}
+                    {overviewInsights}
                   </ReactMarkdown>
                 </div>
               )}
@@ -466,15 +481,15 @@ export default function PatientDetail({ params }: PatientDetailProps) {
                 </button>
               </div>
               
-              {insightsLoading && activeTab === 'medications' ? (
+              {insightsLoading && insightType === 'medications' ? (
                 <div className="flex justify-center items-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
                   <span className="ml-2 text-gray-700">Analyzing medications...</span>
                 </div>
-              ) : insights ? (
+              ) : medicationInsights ? (
                 <div className="prose max-w-none text-black">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {insights}
+                    {medicationInsights}
                   </ReactMarkdown>
                 </div>
               ) : (
@@ -537,15 +552,15 @@ export default function PatientDetail({ params }: PatientDetailProps) {
                 </button>
               </div>
               
-              {insightsLoading && activeTab === 'conditions' ? (
+              {insightsLoading && insightType === 'conditions' ? (
                 <div className="flex justify-center items-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
                   <span className="ml-2 text-gray-700">Analyzing conditions...</span>
                 </div>
-              ) : insights ? (
+              ) : conditionInsights ? (
                 <div className="prose max-w-none text-black">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {insights}
+                    {conditionInsights}
                   </ReactMarkdown>
                 </div>
               ) : (
