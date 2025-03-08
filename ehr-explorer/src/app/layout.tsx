@@ -22,22 +22,21 @@ export default function RootLayout({
       <body className={inter.className}>
         <ThemeProvider defaultTheme="system" storageKey="ehr-explorer-theme">
           <div className="min-h-screen flex flex-col">
-            <header className="bg-primary text-primary-foreground border-b border-border sticky top-0 z-10">
+            <header className="bg-white text-gray-800 border-b border-border sticky top-0 z-10">
               <div className="container max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-3">
-                <div className="flex flex-col space-y-1">
-                  <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
                       <div className="bg-primary-foreground p-1.5 rounded-full">
                         <HeartPulse className="h-5 w-5 text-primary" />
                       </div>
                       <h1 className="text-2xl font-bold tracking-tight">EHR Explorer</h1>
                     </div>
-                    <ThemeToggle />
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm text-gray-600">Patient Medication Analysis Tool</p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Activity className="h-4 w-4" />
-                    <p className="text-sm">Patient Medication Analysis Tool</p>
-                  </div>
+                  <ThemeToggle />
                 </div>
               </div>
             </header>
