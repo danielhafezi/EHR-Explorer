@@ -14,7 +14,7 @@ import {
   AlarmClock, CheckCircle2, XCircle, AlertTriangle,
   ArrowRight, BookOpen, Stethoscope, RefreshCw,
   ClipboardList, TrendingUp, ListChecks, Users,
-  Zap, ChevronUp, ChevronDown
+  Zap, ChevronUp, ChevronDown, FileX
 } from 'lucide-react';
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie,
@@ -72,7 +72,7 @@ function InsightPanel({
     // Handle case where content doesn't match our expected format
     if (!cleanedContent.match(/\d+\.\s+[A-Za-z]/)) {
       return (
-        <div className="prose max-w-none text-black">
+        <div className="prose max-w-none text-foreground">
           <ReactMarkdown remarkPlugins={[remarkGfm]}>
             {cleanedContent}
           </ReactMarkdown>
@@ -116,16 +116,16 @@ function InsightPanel({
       );
       
       return (
-        <div key={index} className="mb-5 last:mb-0">
-          <div className="flex items-start mb-2">
-            <div className="p-2 rounded-full bg-blue-50 text-blue-600 mr-3 mt-0.5">
+        <div key={index} className="mb-5 last:mb-0 py-5 first:pt-0 last:pb-0">
+          <div className="flex items-start mb-3">
+            <div className="p-2 rounded-full bg-primary/10 text-primary mr-3 mt-0.5">
               {icon}
             </div>
-            <h4 className="text-lg font-semibold text-gray-800">
+            <h4 className="text-lg font-semibold text-foreground">
               {renderMarkdownText(heading)}
             </h4>
           </div>
-          <div className="ml-12 text-gray-700 prose">
+          <div className="ml-12 text-muted-foreground prose">
             {content.split('\n').map((paragraph, i) => {
               // Clean each paragraph
               const cleanedPara = cleanMarkdown(paragraph);
@@ -135,9 +135,9 @@ function InsightPanel({
               if (cleanedPara.trim().startsWith('- ')) {
                 // It's a list item
                 return (
-                  <div key={i} className="flex items-start mb-1">
-                    <ChevronRight className="h-4 w-4 text-blue-500 mr-1 mt-1 flex-shrink-0" />
-                    <div className="prose">
+                  <div key={i} className="flex items-start mb-2">
+                    <ChevronRight className="h-4 w-4 text-primary mr-2 mt-1 flex-shrink-0" />
+                    <div className="prose text-muted-foreground">
                       {renderMarkdownText(cleanedPara.substring(2))}
                     </div>
                   </div>
@@ -145,7 +145,7 @@ function InsightPanel({
               } else if (cleanedPara.trim()) {
                 // Regular paragraph with markdown
                 return (
-                  <div key={i} className="mb-2 prose">
+                  <div key={i} className="mb-3 prose text-muted-foreground">
                     {renderMarkdownText(cleanedPara)}
                   </div>
                 );
@@ -159,15 +159,17 @@ function InsightPanel({
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg shadow p-6">
+    <div className="bg-card border border-border rounded-lg shadow-sm hover:shadow transition-all p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center">
-          <Brain className="h-6 w-6 text-blue-500 mr-2" />
-          <h3 className="text-xl font-semibold text-black">{title}</h3>
+          <div className="bg-primary/10 p-2 rounded-full mr-3">
+            <Brain className="h-5 w-5 text-primary" />
+          </div>
+          <h3 className="text-xl font-semibold text-foreground">{title}</h3>
         </div>
         <button
           onClick={onRefresh}
-          className="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-full text-sm flex items-center transition-colors"
+          className="px-4 py-2 bg-secondary hover:bg-secondary/80 text-secondary-foreground rounded-lg text-sm flex items-center transition-colors border border-border/50"
         >
           <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
           Refresh Insights
@@ -175,19 +177,23 @@ function InsightPanel({
       </div>
       
       {loading && insightType === currentType ? (
-        <div className="flex justify-center items-center py-16 bg-gray-50 rounded-lg">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-          <span className="ml-3 text-gray-700 font-medium">Analyzing data...</span>
+        <div className="flex justify-center items-center py-16 bg-secondary/30 rounded-lg">
+          <div className="bg-primary/5 p-4 rounded-full">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+          <span className="ml-4 text-muted-foreground font-medium">Analyzing data...</span>
         </div>
       ) : insights ? (
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-border">
           {renderStructuredInsights(insights)}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center py-16 bg-gray-50 rounded-lg text-gray-500">
-          <BookOpen className="h-12 w-12 text-gray-300 mb-3" />
-          <p className="text-center mb-2">No insights available yet</p>
-          <p className="text-sm text-center">Click "Refresh Insights" to generate an analysis</p>
+        <div className="flex flex-col items-center justify-center py-16 bg-secondary/30 rounded-lg">
+          <div className="bg-primary/5 p-4 rounded-full mb-4">
+            <BookOpen className="h-8 w-8 text-primary" />
+          </div>
+          <p className="text-foreground mb-2">No insights available yet</p>
+          <p className="text-sm text-muted-foreground">Click "Refresh Insights" to generate an analysis</p>
         </div>
       )}
     </div>
@@ -479,10 +485,21 @@ export default function PatientDetail({ params }: PatientDetailProps) {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-blue-500 mx-auto" />
-          <p className="mt-4 text-gray-600">Loading patient data...</p>
+      <div className="max-w-6xl mx-auto">
+        <div className="mb-8">
+          <Link href="/" className="inline-flex items-center text-muted-foreground hover:text-primary mb-6 group transition-colors">
+            <div className="bg-secondary p-2 rounded-full mr-2 group-hover:bg-primary/10 transition-colors">
+              <ChevronLeft className="h-4 w-4" />
+            </div>
+            <span>Back to Patient Directory</span>
+          </Link>
+          
+          <div className="flex justify-center items-center h-64">
+            <div className="bg-primary/5 p-5 rounded-full inline-flex mb-4">
+              <Loader2 className="h-10 w-10 animate-spin text-primary" />
+            </div>
+            <span className="ml-4 text-muted-foreground font-medium">Loading patient data...</span>
+          </div>
         </div>
       </div>
     );
@@ -490,471 +507,580 @@ export default function PatientDetail({ params }: PatientDetailProps) {
 
   if (error) {
     return (
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6">
-          <p>{error}</p>
+      <div className="max-w-6xl mx-auto">
+        <div className="mb-8">
+          <Link href="/" className="inline-flex items-center text-muted-foreground hover:text-primary mb-6 group transition-colors">
+            <div className="bg-secondary p-2 rounded-full mr-2 group-hover:bg-primary/10 transition-colors">
+              <ChevronLeft className="h-4 w-4" />
+            </div>
+            <span>Back to Patient Directory</span>
+          </Link>
+          
+          <div className="bg-destructive/10 border-l-4 border-destructive p-5 mb-8 rounded-r-lg">
+            <div className="flex">
+              <FileX className="h-5 w-5 text-destructive mr-3 flex-shrink-0" />
+              <p className="text-foreground">{error}</p>
+            </div>
+          </div>
         </div>
-        <Link href="/" className="text-blue-500 hover:underline flex items-center">
-          <ChevronLeft className="h-4 w-4 mr-1" />
-          Back to patient list
-        </Link>
       </div>
     );
   }
 
   if (!patient) {
     return (
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6">
-          <p>Patient not found.</p>
+      <div className="max-w-6xl mx-auto">
+        <div className="mb-8">
+          <Link href="/" className="inline-flex items-center text-muted-foreground hover:text-primary mb-6 group transition-colors">
+            <div className="bg-secondary p-2 rounded-full mr-2 group-hover:bg-primary/10 transition-colors">
+              <ChevronLeft className="h-4 w-4" />
+            </div>
+            <span>Back to Patient Directory</span>
+          </Link>
+          
+          <div className="bg-destructive/10 border-l-4 border-destructive p-5 mb-8 rounded-r-lg">
+            <div className="flex">
+              <FileX className="h-5 w-5 text-destructive mr-3 flex-shrink-0" />
+              <p className="text-foreground">Patient not found.</p>
+            </div>
+          </div>
         </div>
-        <Link href="/" className="text-blue-500 hover:underline flex items-center">
-          <ChevronLeft className="h-4 w-4 mr-1" />
-          Back to patient list
-        </Link>
       </div>
     );
   }
 
   return (
     <div className="max-w-6xl mx-auto">
-      <div className="mb-6">
-        <Link href="/" className="text-blue-500 hover:underline flex items-center w-fit">
-          <ChevronLeft className="h-4 w-4 mr-1" />
-          Back to patient list
+      <div className="mb-8">
+        <Link href="/" className="inline-flex items-center text-muted-foreground hover:text-primary mb-6 group transition-colors">
+          <div className="bg-secondary p-2 rounded-full mr-2 group-hover:bg-primary/10 transition-colors">
+            <ChevronLeft className="h-4 w-4" />
+          </div>
+          <span>Back to Patient Directory</span>
         </Link>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white border border-gray-200 rounded-lg shadow p-6 col-span-1">
-          <div className="flex items-center mb-4">
-            <User className="h-6 w-6 text-blue-500 mr-2" />
-            <h2 className="text-xl font-semibold text-black">Patient Information</h2>
-          </div>
-          <div className="space-y-2 text-black">
-            <p className="text-lg font-medium text-gray-800">{patient.formattedName || patient.name}</p>
-            <p className="flex items-center">
-              <User className="h-4 w-4 text-gray-500 mr-1" />
-              <span className="text-gray-800 font-medium mr-1">Gender:</span> 
-              {patient.gender || 'Unknown'}
-            </p>
-            <p className="flex items-center">
-              <Calendar className="h-4 w-4 text-gray-500 mr-1" />
-              <span className="text-gray-800 font-medium mr-1">DOB:</span> 
-              {patient.birthDate ? new Date(patient.birthDate).toLocaleDateString() : 'Unknown'}
-            </p>
-            <p className="flex items-center">
-              <MapPin className="h-7 w-7 text-gray-500 mr-1" />
-              <span className="text-gray-800 font-medium mr-1">Address:</span> 
-              {formatAddress(patient.address)}
-            </p>
-          </div>
-        </div>
         
-        <div className="bg-white border border-gray-200 rounded-lg shadow p-6 col-span-1 md:col-span-2">
-          <div className="flex items-center mb-4">
-            <FileText className="h-6 w-6 text-blue-500 mr-2" />
-            <h2 className="text-xl font-semibold text-black">Summary</h2>
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="bg-primary/5 p-5 rounded-full inline-flex mb-4">
+              <Loader2 className="h-10 w-10 animate-spin text-primary" />
+            </div>
+            <span className="ml-4 text-muted-foreground font-medium">Loading patient data...</span>
           </div>
-          {summary && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-blue-50 rounded-lg p-6 flex items-center shadow-sm">
-                <Pill className="h-10 w-10 text-blue-500 mr-4" />
-                <div>
-                  <div className="text-base text-gray-700">Medications</div>
-                  <div className="text-3xl font-bold text-gray-800">{summary.medicationCount}</div>
-                </div>
-              </div>
-              
-              <div className="bg-green-50 rounded-lg p-6 flex items-center shadow-sm">
-                <Heart className="h-10 w-10 text-green-500 mr-4" />
-                <div>
-                  <div className="text-base text-gray-700">Conditions</div>
-                  <div className="text-3xl font-bold text-gray-800">{summary.conditionCount}</div>
-                </div>
-              </div>
-              
-              <div className="bg-purple-50 rounded-lg p-6 flex items-center shadow-sm">
-                <Clock className="h-10 w-10 text-purple-500 mr-4" />
-                <div>
-                  <div className="text-base text-gray-700">Encounters</div>
-                  <div className="text-3xl font-bold text-gray-800">{summary.encounterCount}</div>
-                </div>
-              </div>
+        ) : error ? (
+          <div className="bg-destructive/10 border-l-4 border-destructive p-5 mb-8 rounded-r-lg">
+            <div className="flex">
+              <FileX className="h-5 w-5 text-destructive mr-3 flex-shrink-0" />
+              <p className="text-foreground">{error}</p>
             </div>
-          )}
-        </div>
-      </div>
-      
-      {/* Tabs */}
-      <div className="mb-6 border-b border-gray-200">
-        <div className="flex space-x-2 overflow-x-auto">
-          <button
-            onClick={() => handleTabChange('overview')}
-            className={`py-3 px-4 font-medium flex items-center ${
-              activeTab === 'overview'
-                ? 'border-b-2 border-blue-500 text-blue-600'
-                : 'text-gray-500 hover:text-blue-500'
-            }`}
-          >
-            <FileText className="h-4 w-4 mr-1" />
-            Overview
-          </button>
-          <button
-            onClick={() => handleTabChange('medications')}
-            className={`py-3 px-4 font-medium flex items-center ${
-              activeTab === 'medications'
-                ? 'border-b-2 border-blue-500 text-blue-600'
-                : 'text-gray-500 hover:text-blue-500'
-            }`}
-          >
-            <Pill className="h-4 w-4 mr-1" />
-            Medications {summary?.medicationCount ? `(${summary.medicationCount})` : ''}
-          </button>
-          <button
-            onClick={() => handleTabChange('conditions')}
-            className={`py-3 px-4 font-medium flex items-center ${
-              activeTab === 'conditions'
-                ? 'border-b-2 border-blue-500 text-blue-600'
-                : 'text-gray-500 hover:text-blue-500'
-            }`}
-          >
-            <Activity className="h-4 w-4 mr-1" />
-            Conditions {summary?.conditionCount ? `(${summary.conditionCount})` : ''}
-          </button>
-          <button
-            onClick={() => handleTabChange('chat')}
-            className={`py-3 px-4 font-medium flex items-center ${
-              activeTab === 'chat'
-                ? 'border-b-2 border-blue-500 text-blue-600'
-                : 'text-gray-500 hover:text-blue-500'
-            }`}
-          >
-            <MessageCircle className="h-4 w-4 mr-1" />
-            AI Assistant
-          </button>
-        </div>
-      </div>
-      
-      {/* Tab Content */}
-      <div>
-        {activeTab === 'overview' && (
-          <div>
-            {/* Visualizations - Moved to top */}
-            <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Visit Frequency Chart */}
-              <div className="bg-white border border-gray-200 rounded-lg shadow p-6">
-                <div className="flex items-center mb-4">
-                  <Calendar className="h-6 w-6 text-blue-500 mr-2" />
-                  <h3 className="text-xl font-semibold text-black">Visit Frequency</h3>
-                </div>
-                {encountersLoading ? (
-                  <div className="h-64 flex items-center justify-center">
-                    <Loader2 className="h-6 w-6 text-blue-500 animate-spin" />
-                    <span className="ml-2">Loading visit data...</span>
-                  </div>
-                ) : encounters.length === 0 ? (
-                  <div className="h-64 flex flex-col items-center justify-center">
-                    <Calendar className="h-12 w-12 text-gray-300 mb-3" />
-                    <p className="text-center text-gray-500">No visit data available</p>
-                  </div>
-                ) : (
-                  <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart
-                        data={processEncountersByDate()}
-                        margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis 
-                          dataKey="date" 
-                          angle={-45} 
-                          textAnchor="end"
-                          height={60}
-                          tick={{ fontSize: 12 }}
-                        />
-                        <YAxis allowDecimals={false} />
-                        <Tooltip 
-                          formatter={(value) => [`${value} visits`, 'Frequency']}
-                          labelFormatter={(label) => {
-                            const [year, month] = label.split('-');
-                            return `${new Date(parseInt(year), parseInt(month) - 1).toLocaleString('default', { month: 'long' })} ${year}`;
-                          }}
-                        />
-                        <Legend />
-                        <Line 
-                          type="monotone" 
-                          dataKey="visits" 
-                          stroke="#0088FE" 
-                          strokeWidth={2}
-                          activeDot={{ r: 8 }} 
-                          name="Visits"
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                )}
-              </div>
-
-              {/* Visit Type Breakdown */}
-              <div className="bg-white border border-gray-200 rounded-lg shadow p-6">
-                <div className="flex items-center mb-4">
-                  <Stethoscope className="h-6 w-6 text-green-500 mr-2" />
-                  <h3 className="text-xl font-semibold text-black">Visit Type Breakdown</h3>
-                </div>
-                {encountersLoading ? (
-                  <div className="h-64 flex items-center justify-center">
-                    <Loader2 className="h-6 w-6 text-green-500 animate-spin" />
-                    <span className="ml-2">Loading visit data...</span>
-                  </div>
-                ) : encounters.length === 0 ? (
-                  <div className="h-64 flex flex-col items-center justify-center">
-                    <Stethoscope className="h-12 w-12 text-gray-300 mb-3" />
-                    <p className="text-center text-gray-500">No visit data available</p>
-                  </div>
-                ) : (
-                  <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={processEncountersByType()}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={true}
-                          outerRadius={80}
-                          fill="#8884d8"
-                          dataKey="value"
-                          nameKey="name"
-                          label={false}
-                        >
-                          {processEncountersByType().map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip 
-                          formatter={(value, name, props) => [`${value} visits`, props.payload.name]}
-                          contentStyle={{ fontSize: '11px' }}
-                        />
-                        <Legend 
-                          wrapperStyle={{ fontSize: '10px' }} 
-                          iconSize={8}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            <InsightPanel 
-              insights={overviewInsights}
-              loading={insightsLoading}
-              insightType={insightType}
-              currentType="comprehensive"
-              onRefresh={() => fetchInsights('comprehensive')}
-              title="Comprehensive Analysis"
-            />
           </div>
-        )}
-        
-        {activeTab === 'medications' && (
-          <div>
-            <div className="bg-white border border-gray-200 rounded-lg shadow mb-6">
-              <div className="p-6 pb-3 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Pill className="h-5 w-5 text-blue-500 mr-2" />
-                    <h3 className="text-lg font-semibold text-black">Medications</h3>
+        ) : patient ? (
+          <>
+            {/* Patient Header */}
+            <div className="bg-card border border-border rounded-lg shadow-sm p-6 mb-8">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+                <div className="flex items-center">
+                  <div className="bg-primary/10 p-3 rounded-full mr-4">
+                    <User className="h-8 w-8 text-primary" />
                   </div>
-                  <button 
-                    onClick={() => setMedicationsExpanded(!medicationsExpanded)}
-                    className="text-gray-500 hover:text-blue-500"
-                    aria-label={medicationsExpanded ? "Collapse medications" : "Expand medications"}
-                  >
-                    {medicationsExpanded ? 
-                      <ChevronUp className="h-5 w-5" /> : 
-                      <ChevronDown className="h-5 w-5" />
-                    }
-                  </button>
+                  <div>
+                    <h1 className="text-2xl font-bold text-foreground">{patient.formattedName || patient.name}</h1>
+                    <div className="flex items-center mt-1 text-muted-foreground">
+                      <Calendar className="h-4 w-4 mr-1.5" />
+                      <span className="mr-3">{patient.birthDate ? new Date(patient.birthDate).toLocaleDateString() : 'Unknown DOB'}</span>
+                      <span className="mx-1.5">•</span>
+                      <span>{patient.gender || 'Unknown gender'}</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              
-              {medicationsExpanded && (
-                <ul className="divide-y divide-gray-200">
-                  {medications.length === 0 ? (
-                    <li className="p-6 text-gray-700 italic">No medications found</li>
-                  ) : (
-                    medications.map((med, index) => (
-                      <li key={index} className="p-6">
-                        <div className="flex items-start">
-                          <Pill className="h-5 w-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" />
-                          <div>
-                            <h4 className="font-medium text-black">{med.medication}</h4>
-                            {med.dosage && <p className="text-sm text-gray-700">Dosage: {med.dosage}</p>}
-                            {med.status && <p className="text-sm text-gray-700">Status: {med.status}</p>}
-                            {med.start_date && (
-                              <p className="text-sm text-gray-700">
-                                Date: {new Date(med.start_date).toLocaleDateString()}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </li>
-                    ))
-                  )}
-                </ul>
-              )}
-            </div>
-            
-            <InsightPanel 
-              insights={medicationInsights}
-              loading={insightsLoading}
-              insightType={insightType}
-              currentType="medications"
-              onRefresh={() => fetchInsights('medications')}
-              title="Medication Analysis"
-            />
-          </div>
-        )}
-        
-        {activeTab === 'conditions' && (
-          <div>
-            <div className="bg-white border border-gray-200 rounded-lg shadow mb-6">
-              <div className="p-6 pb-3 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Activity className="h-5 w-5 text-blue-500 mr-2" />
-                    <h3 className="text-lg font-semibold text-black">Conditions</h3>
-                  </div>
-                  <button 
-                    onClick={() => setConditionsExpanded(!conditionsExpanded)}
-                    className="text-gray-500 hover:text-blue-500"
-                    aria-label={conditionsExpanded ? "Collapse conditions" : "Expand conditions"}
-                  >
-                    {conditionsExpanded ? 
-                      <ChevronUp className="h-5 w-5" /> : 
-                      <ChevronDown className="h-5 w-5" />
-                    }
-                  </button>
-                </div>
-              </div>
-              
-              {conditionsExpanded && (
-                <ul className="divide-y divide-gray-200">
-                  {conditions.length === 0 ? (
-                    <li className="p-6 text-gray-700 italic">No conditions found</li>
-                  ) : (
-                    conditions.map((condition, index) => (
-                      <li key={index} className="p-6">
-                        <div className="flex items-start">
-                          <Activity className="h-5 w-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" />
-                          <div>
-                            <h4 className="font-medium text-black">{condition.condition}</h4>
-                            {condition.onset_date && (
-                              <p className="text-sm text-gray-700">
-                                Onset date: {new Date(condition.onset_date).toLocaleDateString()}
-                              </p>
-                            )}
-                            {condition.abatement_date && (
-                              <p className="text-sm text-gray-700">
-                                End date: {new Date(condition.abatement_date).toLocaleDateString()}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </li>
-                    ))
-                  )}
-                </ul>
-              )}
-            </div>
-            
-            <InsightPanel 
-              insights={conditionInsights}
-              loading={insightsLoading}
-              insightType={insightType}
-              currentType="conditions"
-              onRefresh={() => fetchInsights('conditions')}
-              title="Condition Analysis"
-            />
-          </div>
-        )}
-        
-        {activeTab === 'chat' && (
-          <div className="bg-white border border-gray-200 rounded-lg shadow">
-            <div className="p-6 pb-3 border-b border-gray-200">
-              <div className="flex items-center">
-                <MessageCircle className="h-5 w-5 text-blue-500 mr-2" />
-                <h3 className="text-lg font-semibold text-black">AI Medical Assistant</h3>
-              </div>
-              <p className="text-gray-700 text-sm mt-1">Ask questions about the patient's health record</p>
-            </div>
-            
-            <div className="p-6">
-              <div className="mb-6 max-h-96 overflow-y-auto">
-                {chatHistory.length === 0 ? (
-                  <p className="text-center text-gray-700 italic py-12">
-                    No conversations yet. Ask a question to get started.
-                  </p>
-                ) : (
-                  <div className="space-y-6">
-                    {chatHistory.map((item, index) => (
-                      <div key={index} className="space-y-4">
-                        <div className="bg-blue-50 p-4 rounded-lg rounded-br-none">
-                          <div className="flex items-start">
-                            <User className="h-5 w-5 text-blue-600 mt-0.5 mr-2 flex-shrink-0" />
-                            <div className="text-blue-800">{item.query}</div>
-                          </div>
-                        </div>
-                        <div className="bg-gray-100 p-4 rounded-lg rounded-bl-none">
-                          <div className="flex items-start">
-                            <MessageCircle className="h-5 w-5 text-gray-600 mt-0.5 mr-2 flex-shrink-0" />
-                            <div className="prose prose-sm max-w-none text-black">
-                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                {item.response}
-                              </ReactMarkdown>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
                 
-                {chatLoading && (
-                  <div className="flex items-center justify-center p-4">
-                    <Loader2 className="h-5 w-5 animate-spin text-blue-500 mr-2" />
-                    <span className="text-gray-700">Generating response...</span>
+                <div className="flex flex-wrap gap-3">
+                  <div className="bg-secondary/50 px-4 py-2 rounded-lg border border-border flex items-center">
+                    <Pill className="h-4 w-4 text-primary mr-2" />
+                    <span className="text-sm font-medium">{summary?.medicationCount || 0} Medications</span>
                   </div>
-                )}
+                  <div className="bg-secondary/50 px-4 py-2 rounded-lg border border-border flex items-center">
+                    <Activity className="h-4 w-4 text-primary mr-2" />
+                    <span className="text-sm font-medium">{summary?.conditionCount || 0} Conditions</span>
+                  </div>
+                  <div className="bg-secondary/50 px-4 py-2 rounded-lg border border-border flex items-center">
+                    <FileText className="h-4 w-4 text-primary mr-2" />
+                    <span className="text-sm font-medium">{summary?.encounterCount || 0} Encounters</span>
+                  </div>
+                </div>
               </div>
               
-              <form onSubmit={handleChatSubmit} className="flex items-end">
-                <div className="flex-grow">
-                  <label htmlFor="chatQuery" className="block text-sm font-medium text-gray-700 mb-1">
-                    Your question
-                  </label>
-                  <input
-                    type="text"
-                    id="chatQuery"
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3 border text-black"
-                    placeholder="Ask about medications, conditions, or potential interactions..."
-                    value={chatQuery}
-                    onChange={(e) => setChatQuery(e.target.value)}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1">Address</h3>
+                    <div className="flex items-start">
+                      <MapPin className="h-4 w-4 text-primary mr-2 mt-0.5" />
+                      <span className="text-foreground">{formatAddress(patient.address)}</span>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1">Phone</h3>
+                    <span className="text-foreground">{patient.phone || 'No phone number'}</span>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1">Patient ID</h3>
+                    <span className="text-foreground">{patient.id}</span>
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1">Last Updated</h3>
+                    <div className="flex items-center">
+                      <Clock className="h-4 w-4 text-primary mr-2" />
+                      <span className="text-foreground">
+                        {patient && 'lastUpdated' in patient ? new Date(patient.lastUpdated as string).toLocaleString() : 'Unknown'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Tabs Navigation */}
+            <div className="border-b border-border mb-8">
+              <div className="flex space-x-8">
+                <button
+                  onClick={() => handleTabChange('overview')}
+                  className={`pb-3 px-1 font-medium text-sm transition-colors relative ${
+                    activeTab === 'overview' 
+                      ? 'text-primary border-b-2 border-primary' 
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Overview
+                </button>
+                <button
+                  onClick={() => handleTabChange('medications')}
+                  className={`pb-3 px-1 font-medium text-sm transition-colors relative ${
+                    activeTab === 'medications' 
+                      ? 'text-primary border-b-2 border-primary' 
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Medications
+                </button>
+                <button
+                  onClick={() => handleTabChange('conditions')}
+                  className={`pb-3 px-1 font-medium text-sm transition-colors relative ${
+                    activeTab === 'conditions' 
+                      ? 'text-primary border-b-2 border-primary' 
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Conditions
+                </button>
+                <button
+                  onClick={() => handleTabChange('encounters')}
+                  className={`pb-3 px-1 font-medium text-sm transition-colors relative ${
+                    activeTab === 'encounters' 
+                      ? 'text-primary border-b-2 border-primary' 
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Encounters
+                </button>
+                <button
+                  onClick={() => handleTabChange('chat')}
+                  className={`pb-3 px-1 font-medium text-sm transition-colors relative ${
+                    activeTab === 'chat' 
+                      ? 'text-primary border-b-2 border-primary' 
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  AI Assistant
+                </button>
+              </div>
+            </div>
+            
+            {/* Tab Content */}
+            <div>
+              {activeTab === 'overview' && (
+                <div>
+                  {/* Visualizations - Moved to top */}
+                  <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Visit Frequency Chart */}
+                    <div className="bg-card border border-border rounded-lg shadow p-6">
+                      <div className="flex items-center mb-4">
+                        <Calendar className="h-6 w-6 text-primary mr-2" />
+                        <h3 className="text-xl font-semibold text-foreground">Visit Frequency</h3>
+                      </div>
+                      {encountersLoading ? (
+                        <div className="h-64 flex items-center justify-center">
+                          <Loader2 className="h-6 w-6 text-primary animate-spin" />
+                          <span className="ml-2 text-muted-foreground">Loading visit data...</span>
+                        </div>
+                      ) : encounters.length === 0 ? (
+                        <div className="h-64 flex items-center justify-center">
+                          <FileX className="h-8 w-8 text-muted-foreground mr-2" />
+                          <span className="text-muted-foreground">No visits found</span>
+                        </div>
+                      ) : (
+                        <div className="h-64">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart
+                              data={processEncountersByDate()}
+                              margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis 
+                                dataKey="date" 
+                                angle={-45} 
+                                textAnchor="end"
+                                height={60}
+                                tick={{ fontSize: 12 }}
+                              />
+                              <YAxis allowDecimals={false} />
+                              <Tooltip 
+                                formatter={(value) => [`${value} visits`, 'Frequency']}
+                                labelFormatter={(label) => {
+                                  const [year, month] = label.split('-');
+                                  return `${new Date(parseInt(year), parseInt(month) - 1).toLocaleString('default', { month: 'long' })} ${year}`;
+                                }}
+                              />
+                              <Legend />
+                              <Line 
+                                type="monotone" 
+                                dataKey="visits" 
+                                stroke="#0088FE" 
+                                strokeWidth={2}
+                                activeDot={{ r: 8 }} 
+                                name="Visits"
+                              />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Visit Type Breakdown */}
+                    <div className="bg-card border border-border rounded-lg shadow p-6">
+                      <div className="flex items-center mb-4">
+                        <Stethoscope className="h-6 w-6 text-muted-foreground mr-2" />
+                        <h3 className="text-xl font-semibold text-foreground">Visit Type Breakdown</h3>
+                      </div>
+                      {encountersLoading ? (
+                        <div className="h-64 flex items-center justify-center">
+                          <Loader2 className="h-6 w-6 text-primary animate-spin" />
+                          <span className="ml-2 text-muted-foreground">Loading visit data...</span>
+                        </div>
+                      ) : encounters.length === 0 ? (
+                        <div className="h-64 flex flex-col items-center justify-center">
+                          <Stethoscope className="h-12 w-12 text-gray-300 mb-3" />
+                          <p className="text-center text-gray-500">No visit data available</p>
+                        </div>
+                      ) : (
+                        <div className="h-64">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                              <Pie
+                                data={processEncountersByType()}
+                                cx="50%"
+                                cy="50%"
+                                labelLine={true}
+                                outerRadius={80}
+                                fill="#8884d8"
+                                dataKey="value"
+                                nameKey="name"
+                                label={false}
+                              >
+                                {processEncountersByType().map((entry, index) => (
+                                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                ))}
+                              </Pie>
+                              <Tooltip 
+                                formatter={(value, name, props) => [`${value} visits`, props.payload.name]}
+                                contentStyle={{ fontSize: '11px' }}
+                              />
+                              <Legend 
+                                wrapperStyle={{ fontSize: '10px' }} 
+                                iconSize={8}
+                              />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <InsightPanel 
+                    insights={overviewInsights}
+                    loading={insightsLoading}
+                    insightType={insightType}
+                    currentType="comprehensive"
+                    onRefresh={() => fetchInsights('comprehensive')}
+                    title="Comprehensive Analysis"
                   />
                 </div>
-                <button
-                  type="submit"
-                  className="ml-3 inline-flex justify-center items-center rounded-md border border-transparent bg-blue-600 px-4 py-3 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                  disabled={chatLoading || !chatQuery.trim()}
-                >
-                  <Send className="h-4 w-4 mr-1" />
-                  Send
-                </button>
-              </form>
+              )}
+              
+              {activeTab === 'medications' && (
+                <div>
+                  <div className="bg-card border border-border rounded-lg shadow mb-6">
+                    <div className="p-6 pb-3 border-b border-border">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <Pill className="h-5 w-5 text-primary mr-2" />
+                          <h3 className="text-lg font-semibold text-foreground">Medications</h3>
+                        </div>
+                        <button 
+                          onClick={() => setMedicationsExpanded(!medicationsExpanded)}
+                          className="text-muted-foreground hover:text-primary"
+                          aria-label={medicationsExpanded ? "Collapse medications" : "Expand medications"}
+                        >
+                          {medicationsExpanded ? 
+                            <ChevronUp className="h-5 w-5" /> : 
+                            <ChevronDown className="h-5 w-5" />
+                          }
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {medicationsExpanded && (
+                      <ul className="divide-y divide-gray-200">
+                        {medications.length === 0 ? (
+                          <li className="p-6 text-gray-700 italic">No medications found</li>
+                        ) : (
+                          medications.map((med, index) => (
+                            <li key={index} className="p-6">
+                              <div className="flex items-start">
+                                <Pill className="h-5 w-5 text-primary mt-0.5 mr-3 flex-shrink-0" />
+                                <div>
+                                  <h4 className="font-medium text-foreground">{med.medication}</h4>
+                                  {med.dosage && <p className="text-sm text-muted-foreground">Dosage: {med.dosage}</p>}
+                                  {med.status && <p className="text-sm text-muted-foreground">Status: {med.status}</p>}
+                                  {med.start_date && (
+                                    <p className="text-sm text-muted-foreground">
+                                      Start date: {new Date(med.start_date).toLocaleDateString()}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </li>
+                          ))
+                        )}
+                      </ul>
+                    )}
+                  </div>
+                  
+                  <InsightPanel 
+                    insights={medicationInsights}
+                    loading={insightsLoading}
+                    insightType={insightType}
+                    currentType="medications"
+                    onRefresh={() => fetchInsights('medications')}
+                    title="Medication Analysis"
+                  />
+                </div>
+              )}
+              
+              {activeTab === 'conditions' && (
+                <div>
+                  <div className="bg-card border border-border rounded-lg shadow mb-6">
+                    <div className="p-6 pb-3 border-b border-border">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <Activity className="h-5 w-5 text-muted-foreground mt-0.5 mr-3 flex-shrink-0" />
+                          <h3 className="text-lg font-semibold text-foreground">Conditions</h3>
+                        </div>
+                        <button 
+                          onClick={() => setConditionsExpanded(!conditionsExpanded)}
+                          className="text-muted-foreground hover:text-primary"
+                          aria-label={conditionsExpanded ? "Collapse conditions" : "Expand conditions"}
+                        >
+                          {conditionsExpanded ? 
+                            <ChevronUp className="h-5 w-5" /> : 
+                            <ChevronDown className="h-5 w-5" />
+                          }
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {conditionsExpanded && (
+                      <ul className="divide-y divide-gray-200">
+                        {conditions.length === 0 ? (
+                          <li className="p-6 text-gray-700 italic">No conditions found</li>
+                        ) : (
+                          conditions.map((condition, index) => (
+                            <li key={index} className="p-6">
+                              <div className="flex items-start">
+                                <Activity className="h-5 w-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" />
+                                <div>
+                                  <h4 className="font-medium text-foreground">{condition.condition}</h4>
+                                  {condition.onset_date && (
+                                    <p className="text-sm text-muted-foreground">
+                                      Since: {new Date(condition.onset_date).toLocaleDateString()}
+                                    </p>
+                                  )}
+                                  {condition.abatement_date && (
+                                    <p className="text-sm text-muted-foreground">
+                                      End date: {new Date(condition.abatement_date).toLocaleDateString()}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </li>
+                          ))
+                        )}
+                      </ul>
+                    )}
+                  </div>
+                  
+                  <InsightPanel 
+                    insights={conditionInsights}
+                    loading={insightsLoading}
+                    insightType={insightType}
+                    currentType="conditions"
+                    onRefresh={() => fetchInsights('conditions')}
+                    title="Condition Analysis"
+                  />
+                </div>
+              )}
+              
+              {activeTab === 'encounters' && (
+                <div className="bg-card border border-border rounded-lg shadow">
+                  <div className="p-6 pb-3 border-b border-border">
+                    <div className="flex items-center">
+                      <FileText className="h-5 w-5 text-muted-foreground mt-0.5 mr-2 flex-shrink-0" />
+                      <h3 className="text-lg font-semibold text-foreground">Encounters</h3>
+                    </div>
+                  </div>
+                  
+                  <div className="p-6">
+                    {encountersLoading ? (
+                      <div className="h-64 flex items-center justify-center">
+                        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                      </div>
+                    ) : encounters.length === 0 ? (
+                      <div className="h-64 flex flex-col items-center justify-center">
+                        <FileX className="h-12 w-12 text-gray-300 mb-3" />
+                        <p className="text-center text-gray-500">No encounter data available</p>
+                      </div>
+                    ) : (
+                      <div className="h-64">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart
+                            data={processEncountersByDate()}
+                            margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis 
+                              dataKey="date" 
+                              angle={-45} 
+                              textAnchor="end"
+                              height={60}
+                              tick={{ fontSize: 12 }}
+                            />
+                            <YAxis allowDecimals={false} />
+                            <Tooltip 
+                              formatter={(value) => [`${value} encounters`, 'Frequency']}
+                              labelFormatter={(label) => {
+                                const [year, month] = label.split('-');
+                                return `${new Date(parseInt(year), parseInt(month) - 1).toLocaleString('default', { month: 'long' })} ${year}`;
+                              }}
+                            />
+                            <Legend />
+                            <Line 
+                              type="monotone" 
+                              dataKey="visits" 
+                              stroke="#0088FE" 
+                              strokeWidth={2}
+                              activeDot={{ r: 8 }} 
+                              name="Encounters"
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              {activeTab === 'chat' && (
+                <div className="bg-card border border-border rounded-lg shadow">
+                  <div className="p-6 pb-3 border-b border-border">
+                    <div className="flex items-center">
+                      <MessageCircle className="h-5 w-5 text-muted-foreground mt-0.5 mr-2 flex-shrink-0" />
+                      <h3 className="text-lg font-semibold text-foreground">AI Medical Assistant</h3>
+                    </div>
+                    <div className="text-muted-foreground text-sm mt-1">Ask questions about the patient's health record</div>
+                  </div>
+                  
+                  <div className="p-6">
+                    <div className="mb-6 max-h-96 overflow-y-auto">
+                      {chatHistory.length === 0 ? (
+                        <p className="text-center text-gray-700 italic py-12">
+                          No conversations yet. Ask a question to get started.
+                        </p>
+                      ) : (
+                        <div className="space-y-6">
+                          {chatHistory.map((item, index) => (
+                            <div key={index} className="space-y-4">
+                              <div className="bg-secondary/50 p-4 rounded-lg rounded-br-none border border-border">
+                                <div className="flex items-start">
+                                  <User className="h-5 w-5 text-primary mt-0.5 mr-2 flex-shrink-0" />
+                                  <div className="text-foreground">{item.query}</div>
+                                </div>
+                              </div>
+                              <div className="bg-card p-4 rounded-lg rounded-bl-none border border-border">
+                                <div className="flex items-start">
+                                  <MessageCircle className="h-5 w-5 text-gray-600 mt-0.5 mr-2 flex-shrink-0" />
+                                  <div className="prose prose-sm max-w-none text-black">
+                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                      {item.response}
+                                    </ReactMarkdown>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      
+                      {chatLoading && (
+                        <div className="flex items-center justify-center p-4">
+                          <Loader2 className="h-5 w-5 animate-spin text-primary mr-2" />
+                          <span className="text-muted-foreground">Generating response...</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <form onSubmit={handleChatSubmit} className="flex items-end">
+                      <div className="flex-grow">
+                        <label htmlFor="chatQuery" className="block text-sm font-medium text-gray-700 mb-1">
+                          Your question
+                        </label>
+                        <input
+                          type="text"
+                          id="chatQuery"
+                          className="block w-full rounded-md border-border focus:border-primary focus:ring-primary p-3 border text-foreground"
+                          placeholder="Ask about medications, conditions, or potential interactions..."
+                          value={chatQuery}
+                          onChange={(e) => setChatQuery(e.target.value)}
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        className="ml-3 inline-flex justify-center items-center rounded-md border border-transparent bg-primary px-4 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                        disabled={chatLoading || !chatQuery.trim()}
+                      >
+                        <Send className="h-4 w-4 mr-1" />
+                        Send
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
-        )}
+          </>
+        ) : null}
       </div>
     </div>
   );

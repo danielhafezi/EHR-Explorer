@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Patient } from '@/utils/database';
-import { Search, Loader2, UserCircle, Calendar, Users, Upload, AlertCircle, XCircle, CheckCircle } from 'lucide-react';
+import { Search, Loader2, UserCircle, Calendar, Users, Upload, AlertCircle, XCircle, CheckCircle, Info } from 'lucide-react';
 
 export default function Home() {
   const [patients, setPatients] = useState<Patient[]>([]);
@@ -195,61 +195,75 @@ export default function Home() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <div className="mb-8">
+      <div className="mb-10">
         <div className="flex items-center mb-4">
-          <Users className="h-7 w-7 mr-2 text-blue-500" />
-          <h1 className="text-3xl font-bold text-black">Patient Directory</h1>
+          <div className="bg-primary/10 p-2 rounded-full mr-3">
+            <Users className="h-6 w-6 text-primary" />
+          </div>
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">Patient Directory</h1>
         </div>
-        <p className="text-black mb-6">
-          Select a patient to view their health records and AI-generated insights.
+        <p className="text-muted-foreground mb-8 text-lg">
+          Browse patients in our database or add new ones to the system
         </p>
         
-        <div className="relative mb-6">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-gray-400" />
+        <div className="relative mb-8">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <Search className="h-5 w-5 text-muted-foreground" />
           </div>
           <input
             type="text"
             placeholder="Search patients by name..."
-            className="w-full pl-10 p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-black placeholder-gray-700"
+            className="w-full pl-12 p-4 border border-border bg-background rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary text-foreground placeholder-muted-foreground transition-all"
             value={searchQuery}
             onChange={handleSearch}
           />
         </div>
         
         {/* File Upload Section */}
-        <div className="mb-8 p-4 border border-gray-200 rounded-lg bg-gray-50">
-          <div className="flex items-center mb-2">
-            <Upload className="h-5 w-5 mr-2 text-blue-500" />
-            <h2 className="text-lg font-medium text-black">Upload Patient Data</h2>
+        <div className="mb-10 p-8 border border-border rounded-lg bg-card shadow-sm hover:shadow-md transition-all">
+          <div className="flex items-center mb-4">
+            <div className="bg-primary/10 p-2 rounded-full mr-3">
+              <Upload className="h-5 w-5 text-primary" />
+            </div>
+            <h2 className="text-xl font-semibold text-foreground">Upload Patient Data</h2>
           </div>
-          <p className="text-sm text-gray-600 mb-4">
+          <p className="text-sm text-muted-foreground mb-6">
             Upload patient JSON files to add them to the directory.
           </p>
           
-          <div className="flex items-center space-x-4">
-            <label className="cursor-pointer bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md transition-colors">
-              <span>{uploading ? 'Uploading...' : 'Select File'}</span>
-              <input
-                type="file"
-                className="hidden"
-                accept=".json"
-                onChange={handleFileUpload}
-                disabled={uploading}
-                ref={fileInputRef}
-              />
-            </label>
-            <div className="text-sm">
+          <div className="flex flex-col sm:flex-row items-center gap-5">
+            <div className="relative group w-full sm:w-auto">
+              <label className="flex items-center justify-center gap-2 cursor-pointer bg-primary hover:bg-primary/90 text-primary-foreground py-3 px-6 rounded-lg transition-all border border-transparent hover:shadow-md">
+                <Upload className="h-4 w-4" />
+                <span className="font-medium">{uploading ? 'Uploading...' : 'Select File'}</span>
+                <input
+                  type="file"
+                  className="hidden"
+                  accept=".json"
+                  onChange={handleFileUpload}
+                  disabled={uploading}
+                  ref={fileInputRef}
+                />
+              </label>
+            </div>
+            
+            <div className="text-sm mt-3 sm:mt-0 flex-1">
               {uploadStatus.type === 'success' && (
-                <div className="flex items-center text-green-600">
-                  <CheckCircle className="h-4 w-4 mr-1" />
+                <div className="flex items-center text-foreground p-3 px-4 bg-secondary/50 rounded-lg border border-border">
+                  <CheckCircle className="h-5 w-5 mr-2 text-primary flex-shrink-0" />
                   <span>{uploadStatus.message}</span>
                 </div>
               )}
               {uploadStatus.type === 'error' && (
-                <div className="flex items-center text-red-600">
-                  <XCircle className="h-4 w-4 mr-1" />
+                <div className="flex items-center text-foreground p-3 px-4 bg-secondary/50 rounded-lg border border-border">
+                  <XCircle className="h-5 w-5 mr-2 text-destructive flex-shrink-0" />
                   <span>{uploadStatus.message}</span>
+                </div>
+              )}
+              {!uploadStatus.type && (
+                <div className="flex items-center text-muted-foreground p-3 px-4 bg-secondary/30 rounded-lg border border-border/50">
+                  <Info className="h-5 w-5 mr-2 text-muted-foreground flex-shrink-0" />
+                  <span>Supported format: JSON files with patient data</span>
                 </div>
               )}
             </div>
@@ -260,17 +274,25 @@ export default function Home() {
       {loading ? (
         <div className="flex justify-center items-center h-64">
           <div className="text-center">
-            <Loader2 className="h-12 w-12 animate-spin text-blue-500 mx-auto" />
-            <p className="mt-4 text-black">Loading patients...</p>
+            <div className="bg-primary/5 p-5 rounded-full inline-flex mb-4">
+              <Loader2 className="h-10 w-10 animate-spin text-primary" />
+            </div>
+            <p className="text-foreground text-lg">Loading patients...</p>
           </div>
         </div>
       ) : error ? (
-        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6">
-          <p>{error}</p>
+        <div className="bg-destructive/10 border-l-4 border-destructive p-5 mb-8 rounded-r-lg">
+          <div className="flex">
+            <AlertCircle className="h-5 w-5 text-destructive mr-3 flex-shrink-0" />
+            <p className="text-foreground">{error}</p>
+          </div>
         </div>
       ) : patients.length === 0 ? (
-        <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6">
-          <p>No patients found. Try a different search term or upload patient data.</p>
+        <div className="bg-card border border-border p-6 mb-8 rounded-lg shadow-sm">
+          <div className="text-muted-foreground flex items-center">
+            <AlertCircle className="h-5 w-5 mr-3 flex-shrink-0" />
+            <p>No patients found. Try a different search term or upload patient data.</p>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -278,20 +300,22 @@ export default function Home() {
             <Link 
               href={`/patients/${patient.id}`} 
               key={patient.id}
-              className="block"
+              className="block group"
             >
-              <div className="border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow p-6 bg-white">
-                <div className="flex items-center mb-3">
-                  <UserCircle className="h-6 w-6 text-blue-500 mr-2" />
-                  <h2 className="text-xl font-semibold text-black">{patient.formattedName || patient.name}</h2>
+              <div className="border border-border rounded-lg shadow-sm group-hover:shadow-md transition-all p-6 bg-card group-hover:border-primary/20">
+                <div className="flex items-center mb-4">
+                  <div className="bg-primary/10 p-2 rounded-full mr-3">
+                    <UserCircle className="h-5 w-5 text-primary" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-foreground group-hover:text-primary transition-colors">{patient.formattedName || patient.name}</h2>
                 </div>
-                <div className="text-black text-sm space-y-1">
+                <div className="text-muted-foreground text-sm space-y-3 pl-1">
                   <div className="flex items-center">
                     <span className="w-16 font-medium">Gender:</span>
                     <span>{patient.gender || 'Unknown'}</span>
                   </div>
                   <div className="flex items-center">
-                    <Calendar className="h-4 w-4 text-gray-500 mr-1" />
+                    <Calendar className="h-4 w-4 text-muted-foreground mr-1.5" />
                     <span className="w-12 font-medium">DOB:</span>
                     <span>{patient.birthDate ? new Date(patient.birthDate).toLocaleDateString() : 'Unknown'}</span>
                   </div>
