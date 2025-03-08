@@ -23,7 +23,7 @@ export default function RootLayout({
         <ThemeProvider defaultTheme="system" storageKey="ehr-explorer-theme">
           <div className="min-h-screen flex flex-col">
             <header className="bg-primary text-primary-foreground border-b border-border sticky top-0 z-10">
-              <div className="max-w-7xl mx-auto w-full px-4 py-3">
+              <div className="container max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-3">
                 <div className="flex flex-col space-y-1">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -41,9 +41,9 @@ export default function RootLayout({
                 </div>
               </div>
             </header>
-            <main className="max-w-7xl mx-auto w-full px-4 py-6 flex-grow">{children}</main>
+            <main className="container max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 flex-grow">{children}</main>
             <footer className="bg-secondary text-secondary-foreground border-t border-border mt-auto">
-              <div className="max-w-7xl mx-auto w-full px-4 py-4">
+              <div className="container max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-4">
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                   <div className="flex items-center gap-2">
                     <div className="bg-primary rounded-full p-1">

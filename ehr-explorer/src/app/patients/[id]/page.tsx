@@ -485,7 +485,7 @@ export default function PatientDetail({ params }: PatientDetailProps) {
 
   if (loading) {
     return (
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <Link href="/" className="inline-flex items-center text-muted-foreground hover:text-primary mb-6 group transition-colors">
             <div className="bg-secondary p-2 rounded-full mr-2 group-hover:bg-primary/10 transition-colors">
@@ -507,7 +507,7 @@ export default function PatientDetail({ params }: PatientDetailProps) {
 
   if (error) {
     return (
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <Link href="/" className="inline-flex items-center text-muted-foreground hover:text-primary mb-6 group transition-colors">
             <div className="bg-secondary p-2 rounded-full mr-2 group-hover:bg-primary/10 transition-colors">
@@ -529,7 +529,7 @@ export default function PatientDetail({ params }: PatientDetailProps) {
 
   if (!patient) {
     return (
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <Link href="/" className="inline-flex items-center text-muted-foreground hover:text-primary mb-6 group transition-colors">
             <div className="bg-secondary p-2 rounded-full mr-2 group-hover:bg-primary/10 transition-colors">
@@ -550,7 +550,7 @@ export default function PatientDetail({ params }: PatientDetailProps) {
   }
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-7xl mx-auto">
       <div className="mb-8">
         <Link href="/" className="inline-flex items-center text-muted-foreground hover:text-primary mb-6 group transition-colors">
           <div className="bg-secondary p-2 rounded-full mr-2 group-hover:bg-primary/10 transition-colors">

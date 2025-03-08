@@ -194,7 +194,7 @@ export default function Home() {
   }, [uploadStatus]);
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-7xl mx-auto">
       <div className="mb-10">
         <div className="flex items-center mb-4">
           <div className="bg-primary/10 p-2 rounded-full mr-3">
